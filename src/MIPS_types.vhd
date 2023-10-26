@@ -24,6 +24,8 @@ package MIPS_types is
     reg_to_mem : std_logic;
   end record control_t;
 
+	type bus_array is array(31 downto 0) of std_logic_vector(31 downto 0);
+
 end package MIPS_types;
 
 package body MIPS_types is
