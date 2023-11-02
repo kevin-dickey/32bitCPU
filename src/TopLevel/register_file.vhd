@@ -59,7 +59,7 @@ begin
 		port MAP(i_In	 => i_Data,	-- essentially redundant, will never have any effect on value stored in this register
 				 i_Clk	 => i_CLK,
 				 i_WrEn	 => s_regSelectLines(0),
-				 i_Reset => '1',	-- will always be continuously reset to 0, will NOT jump/oscillate for nanoseconds to input data b/c of structure of dffg.vhd (asynch. reset & if statement structure)
+				 i_Reset => '1',	-- will always be continuously reset to 0, will NOT jump/oscillate for nanoseconds to input data b/c of structure of dffg_falling.vhd (asynch. reset & if statement structure)
 				 o_Out	 => s_regOutput(0));
 
 	-- Instantiate N (31) 32-bit registers.

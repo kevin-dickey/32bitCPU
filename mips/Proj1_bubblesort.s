@@ -48,10 +48,13 @@ readArrayElements:
 # at this point all elements should be properly in array
 bubbleSort:
 addi $s0, $zero, 0 	# i = 0 (resetting i after using it to enter array elements)
-addi $t0, $s2, -1	# t0 = N - 1		# will be ok with forwarding result from ALU, otherwise needs 1 nop before this instruc
+addi $t0, $s2, -1	# t0 = N - 1		# should be ok, just make sure register file writes in first half and reads in second
 outerCond:
 addi $s1, $zero, 0	# j = 0
-slt $t1, $s0, $t0	# t1 = 1 when i < N-1 	# will be ok with forwarding result from ALU, otherwise needs 2 nop before this instruc
+nop	# stall for t0
+slt $t1, $s0, $t0	# t1 = 1 when i < N-1 	
+nop
+nop	# stall for branch
 beq $t1, $zero, printResults
 addi $t2, $zero, 0	# t2 acts as a boolean, t2 = 0 = false, see "https://www.geeksforgeeks.org/bubble-sort/" for more info on this part
 innerCond:
