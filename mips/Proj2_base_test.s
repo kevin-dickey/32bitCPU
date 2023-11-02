@@ -5,6 +5,8 @@ text: .asciiz "cool things "
 .text
 .globl main
 
+# look over again for branches and jumps
+
 main:
     la $s0, array
     addi $t1, $t0, 5	# testing framework uses reset signal before each test so this should store 5 into t1 no problem :)
@@ -65,8 +67,10 @@ temp:
     nop
     nop		# stall for t6
     bne $t6, $t5, temp2
+    nop
 
 temp2:
+    nop
     j temp3
 
 temp3:

@@ -10,6 +10,7 @@ array: .word 6, 3, 11, 4, 6, 7, 9, 7, 1023, 43
 .globl main
 
 # NOTE: Added 21 nop instructions to work in a 5-stage pipeline (without forwarding or hazard detection). Not the greatest, but it'll do for now. 
+# NOTE: Look over for branches and jumps.
 
 main: 
 # prompt user for number of elements
