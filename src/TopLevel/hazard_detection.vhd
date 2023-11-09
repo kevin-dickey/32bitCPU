@@ -37,5 +37,4 @@ begin
 	o_control_hazard <= '1' when ((i_opcode = "000100") or (i_opcode = "000101"))	
 				else '0';
 
-	
 end dataflow;
