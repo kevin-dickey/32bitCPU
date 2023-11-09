@@ -42,12 +42,19 @@ main:
     nop
     nop		# stall for t1 (and t0)
     beq $t0, $t1, equal
+    nop
+    nop		# stall for beq
     
     j exit
+    nop		# stall for jump
+    
     
 equal:
     jal cond
+    nop
+    nop		# stall for jump & link
     j exit
+    nop		# stall for jump
     
 cond:
     addi $t2, $t0, 68
@@ -58,6 +65,8 @@ cond:
     nop
     nop     	# stall for t3
     bne   $t3, $zero, temp 
+    nop
+    nop		# stall for bne
 
 temp:
     addi $t5, $t5, 1
@@ -68,16 +77,19 @@ temp:
     nop		# stall for t6
     bne $t6, $t5, temp2
     nop
+    nop		# stall for bne
 
 temp2:
-    nop
     j temp3
+    nop		# stall for jump
 
 temp3:
     addi $t1, $t1, 4
     nop
     nop		# stall for t1
     bne $t0, $t1, temp4
+    nop
+    nop		# stall for bne
 
 temp4:
     addi $t3, $zero, 0
@@ -85,6 +97,7 @@ temp4:
     la $a0, text
     #syscall
     jr $ra	#return
+    nop		# stall for jr
 
 exit:  
     li $v0, 10

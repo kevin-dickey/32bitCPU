@@ -59,6 +59,8 @@ slt $t1, $s0, $t0	# t1 = 1 when i < N-1
 nop
 nop	# stall for t1
 beq $t1, $zero, printResults
+nop
+nop	# stall for beq
 addi $t2, $zero, 0	# t2 acts as a boolean, t2 = 0 = false, see "https://www.geeksforgeeks.org/bubble-sort/" for more info on this part
 innerCond:
 sub $t3, $t0, $s0	# t3 = N - 1 - i
@@ -68,6 +70,8 @@ slt $t4, $s1, $t3	# t4 = 1 when j < N - 1 - i
 nop
 nop	# stall for t4
 beq $t4, $zero, check
+nop
+nop	# stall for beq
 # if arr[j] > arr[j+1], swap em and set t2 to 1
 sll $t5, $s1, 2		# t5 = j * 4 to load integers
 addiu $s6, $s1, 1	# s6 = j+1
@@ -87,6 +91,8 @@ slt $t4, $t8, $t7	# t4 = 1 when array[j+1] < array[j]
 nop
 nop	# stall for t4
 beq $t4, $zero, innerCond
+nop
+nop	# stall for beq
 # swap em
 sw $t7, 0($s6)		# array[j+1] = contents from array[j] (s6 should still be address at array[j+1])
 addi $s6, $s6, -4	# s6 = array[j] address
@@ -95,11 +101,14 @@ nop	# stall for s6
 sw $t8, 0($s6)		# array[j] = contents from array[j+1]
 addi $t2, $zero, 1
 j innerCond
+nop	# stall for jump
 check: # if no elements were swapped in inner loop, stop bubbleSort and print results. otherwise, back to outerCond
 slti $t2, $t2, 1	# t2 = 1 when t2<1 (t2=true (1) ==> t2=0, t2=false (0) ==> t2=1)
 addi $s0, $s0, 1	# i++
 nop	# stall for t2
 beq $t2, $zero, outerCond
+nop
+nop
 #goes to printResults when nothing was swapped in innerCond
 
 printResults:
@@ -111,6 +120,8 @@ slt $at, $s0, $s2	# at = 1 when i < N
 nop
 nop	#stall for at
 beq $at, $zero, exit
+nop
+nop	# stall for beq
 lw $t0, 0($s3)
 addi $s3, $s3, 4
 
