@@ -107,7 +107,7 @@ architecture structure of MIPS_Processor is
   signal s_HaltM : std_logic;
   signal s_ALUM : std_logic_vector(31 downto 0);
   signal s_WriteDataM : std_logic_vector(31 downto 0);
-  signal s_InstM : std_logic_vector(31 downto 0);
+  signal s_InstM : std_logic_vector(4 downto 0);
 
   --WB control signals
   signal s_MemtoRegWB : std_logic;
@@ -115,7 +115,7 @@ architecture structure of MIPS_Processor is
   signal s_HaltWB : std_logic;
   signal s_ALUWB : std_logic_vector(31 downto 0);
   signal s_DMemOutWB : std_logic_vector(31 downto 0);
-  signal s_InstWB : std_logic_vector(31 downto 0);
+  signal s_InstWB : std_logic_vector(4 downto 0);
 
   --Fetch/pc signals
   signal s_PC : std_logic_vector(N-1 downto 0);
@@ -263,8 +263,8 @@ component MEM_WB is
        i_ALU2          : in std_logic_vector(31 downto 0);
        o_ALU2          : out std_logic_vector(31 downto 0);
 
-       i_Inst          : in std_logic_vector(31 downto 0);
-       o_Inst          : out std_logic_vector(31 downto 0));
+       i_Inst          : in std_logic_vector(4 downto 0);
+       o_Inst          : out std_logic_vector(4 downto 0));
        
 end component;
 
@@ -285,8 +285,8 @@ component EX_MEM is
        i_Dmem          : in std_logic_vector(31 downto 0);
        o_Dmem          : out std_logic_vector(31 downto 0);
 
-       i_Inst          : in std_logic_vector(31 downto 0);
-       o_Inst          : out std_logic_vector(31 downto 0));
+       i_Inst          : in std_logic_vector(4 downto 0);
+       o_Inst          : out std_logic_vector(4 downto 0));
        
 end component;
 
@@ -615,7 +615,7 @@ MEMWB: MEM_WB
        i_ALU2 => s_ALU2D,
        o_ALU2 => s_WriteDataM,
 
-       i_Inst => s_InstF,
+       i_Inst => s_rdEx,
        o_Inst => s_InstM);
 
 EXMEM: EX_MEM
@@ -691,7 +691,7 @@ Registers: register_file
 ALUI: proj1_alu
 	port map(i_RST => iRST,
 		i_CLK => iCLK,
-		i_ALUSrc => s_ALUSrc,
+		i_ALUSrc => s_ALuSrcEx,
 		i_ALU1 => s_ALU1,
 		i_ALU2 => s_ALU2,
 		i_immediate => s_SignExtendedEx,
