@@ -6,10 +6,16 @@ entity MEM_WB is
   port(i_CLK        : in std_logic;     -- Clock input
        i_RST        : in std_logic;     -- Reset input
 
-       i_wb          : in std_logic;
-       o_wb          : out std_logic;
-       i_m          : in std_logic;
-       o_m          : out std_logic;
+       i_MemtoRegM          : in std_logic;
+       o_MemtoRegM          : out std_logic;
+       i_RegWriteM          : in std_logic;
+       o_RegWriteM          : out std_logic;
+
+       i_memWriteM          : in std_logic;
+       o_memWriteM          : out std_logic;
+       i_memReadM          : in std_logic;
+       o_memReadM          : out std_logic;
+
        i_halt          : in std_logic;
        o_halt          : out std_logic;
 
@@ -53,19 +59,33 @@ begin
 --	       i_D	  when '0',
 --               x"00000000" when others;
 
-  dffWB: dffg
+  dffMemtoReg: dffg
 	port MAP(i_CLK	=> i_CLK,
 		i_RST	=> i_RST,
 		i_WE	=> '1',
-		i_D	=> i_wb,
-		o_Q	=> o_wb);
+		i_D	=> i_MemtoRegM,
+		o_Q	=> o_MemtoRegM);
 
-  dffM: dffg
+  dffRegWrite: dffg
 	port MAP(i_CLK	=> i_CLK,
 		i_RST	=> i_RST,
 		i_WE	=> '1',
-		i_D	=> i_m,
-		o_Q	=> o_m);
+		i_D	=> i_RegWriteM,
+		o_Q	=> o_RegWriteM);
+
+  dffmemWrite: dffg
+	port MAP(i_CLK	=> i_CLK,
+		i_RST	=> i_RST,
+		i_WE	=> '1',
+		i_D	=> i_memWriteM,
+		o_Q	=> o_memWriteM);
+
+  dffmemRead: dffg
+	port MAP(i_CLK	=> i_CLK,
+		i_RST	=> i_RST,
+		i_WE	=> '1',
+		i_D	=> i_memReadM,
+		o_Q	=> o_memReadM);
 
   dffEX: dffg
 	port MAP(i_CLK	=> i_CLK,
