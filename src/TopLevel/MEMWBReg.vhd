@@ -24,8 +24,8 @@ entity MEM_WB is
        i_ALU2          : in std_logic_vector(31 downto 0);
        o_ALU2          : out std_logic_vector(31 downto 0);
 
-       i_Inst          : in std_logic_vector(31 downto 0);
-       o_Inst          : out std_logic_vector(31 downto 0));
+       i_Inst          : in std_logic_vector(4 downto 0);
+       o_Inst          : out std_logic_vector(4 downto 0));
        
 end MEM_WB;
 
@@ -109,6 +109,7 @@ begin
 		o_Out	=> o_ALU2);
 
   RegInst: reg_N
+  	generic map(N => 5)
 	port MAP(i_In	=> i_Inst,
 		i_Clk	=> i_CLK,
 		i_WrEn	=> '1',
