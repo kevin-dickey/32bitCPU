@@ -19,8 +19,8 @@ entity EX_MEM is
        i_Dmem          : in std_logic_vector(31 downto 0);
        o_Dmem          : out std_logic_vector(31 downto 0);
 
-       i_Inst          : in std_logic_vector(31 downto 0);
-       o_Inst          : out std_logic_vector(31 downto 0));
+       i_Inst          : in std_logic_vector(4 downto 0);
+       o_Inst          : out std_logic_vector(4 downto 0));
        
 end EX_MEM;
 
@@ -90,6 +90,7 @@ begin
 		o_Out	=> o_ALU);
 
   RegInst: reg_N
+  	generic map(N => 5)
 	port MAP(i_In	=> i_Inst,
 		i_Clk	=> i_CLK,
 		i_WrEn	=> '1',
