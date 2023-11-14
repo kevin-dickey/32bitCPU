@@ -10,7 +10,7 @@
 
 library IEEE;
 use IEEE.std_logic_1164.all;
-use work.bus_array_type.all;
+use MIPS_types.all;
 
 entity register_file is
 	generic(N : integer := 32);

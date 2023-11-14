@@ -22,7 +22,7 @@ end reg_N;
 
 architecture structure of reg_N is
 
-	component dffg is
+	component dffg_falling is
 		port(i_CLK        : in std_logic;     -- Clock input
        		 i_RST        : in std_logic;     -- Reset input
        		 i_WE         : in std_logic;     -- Write enable input
@@ -34,9 +34,9 @@ architecture structure of reg_N is
 
 begin
 
-	-- Instantiate N DFF instances.
+	-- Instantiate N DFF_falling instances.
 	G_NBit_Reg: for i in 0 to N-1 generate
-    	DFFI: dffg port map(
+    	DFFI: dffg_falling port map(
               i_CLK     => i_Clk,      -- All DFFs get the same clock signal
               i_RST     => i_Reset,    -- All DFFs get the same reset signal
               i_WE     	=> i_WrEn,     -- All DFFs get the same write enable signal

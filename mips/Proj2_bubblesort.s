@@ -9,6 +9,9 @@ array: .word 6, 3, 11, 4, 6, 7, 9, 7, 1023, 43
 .text
 .globl main
 
+# NOTE: Added 21 nop instructions to work in a 5-stage pipeline (without forwarding or hazard detection). Not the greatest, but it'll do for now. 
+# NOTE: Look over for branches and jumps.
+
 main: 
 # prompt user for number of elements
 #la $a0, str1
@@ -19,8 +22,8 @@ main:
 #li $v0, 5
 #syscall
 
-addi $s0, $zero, 0	# i = 0
-addi $s1, $zero, 0	# j = 0
+#addi $s0, $zero, 0	# i = 0		# commented out b/c do it anyway on line 50
+addi $s1, $zero, 0	# j = 0		# was commented out b/c do it anyway on line 51, may want to keep
 addi $s2, $zero, 10	# N = 10 (num elements in array)
 la $s3, array		# s3 = array base address
 
@@ -48,47 +51,77 @@ readArrayElements:
 # at this point all elements should be properly in array
 bubbleSort:
 addi $s0, $zero, 0 	# i = 0 (resetting i after using it to enter array elements)
-addi $t0, $s2, -1	# t0 = N - 1
-# may need to reset all temp registers here? not sure
+addi $t0, $s2, -1	# t0 = N - 1		# should be ok, just make sure register file writes in first half and reads in second
 outerCond:
 addi $s1, $zero, 0	# j = 0
-slt $t1, $s0, $t0	# t1 = 1 when i < N-1
+nop	# stall for t0
+slt $t1, $s0, $t0	# t1 = 1 when i < N-1 	
+nop
+nop	# stall for t1
 beq $t1, $zero, printResults
+nop
+nop	# stall for beq
 addi $t2, $zero, 0	# t2 acts as a boolean, t2 = 0 = false, see "https://www.geeksforgeeks.org/bubble-sort/" for more info on this part
 innerCond:
 sub $t3, $t0, $s0	# t3 = N - 1 - i
+nop
+nop 	# stall for t3
 slt $t4, $s1, $t3	# t4 = 1 when j < N - 1 - i
+nop
+nop	# stall for t4
 beq $t4, $zero, check
+nop
+nop	# stall for beq
 # if arr[j] > arr[j+1], swap em and set t2 to 1
 sll $t5, $s1, 2		# t5 = j * 4 to load integers
+addiu $s6, $s1, 1	# s6 = j+1
+nop	# stall for t5 (and s6)
 addu $t6, $s3, $t5	# t6 = array[j] (proper array address w/ offset)
+sll $s6, $s6, 2		# s6 = (j+1) * 4 to load integers
+nop	# stall for t6 (and s6)
 lw $t7, 0($t6)		# t7 = value at array[j]
-addiu $t6, $s1, 1	# t6 = j+1
-sll $t6, $t6, 2		# t6 = (j+1) * 4 to load integers
-addu $t6, $s3, $t6	# t6 = array[j+1] address
-lw $t8, 0($t6)		# t8 = value at array[j+1]
+addu $s6, $s3, $s6	# s6 = array[j+1] address
 addi $s1, $s1, 1	# j++
+nop
+lw $t8, 0($s6)		# t8 = value at array[j+1]
 # should be able to reuse t4 here (i think)
+nop
+nop	# stall for t8
 slt $t4, $t8, $t7	# t4 = 1 when array[j+1] < array[j]
+nop
+nop	# stall for t4
 beq $t4, $zero, innerCond
+nop
+nop	# stall for beq
 # swap em
-sw $t7, 0($t6)		# array[j+1] = contents from array[j] (t6 should still be address at array[j+1])
-addi $t6, $t6, -4	# t6 = array[j] address
-sw $t8, 0($t6)		# array[j] = contents from array[j+1]
+sw $t7, 0($s6)		# array[j+1] = contents from array[j] (s6 should still be address at array[j+1])
+addi $s6, $s6, -4	# s6 = array[j] address
+nop
+nop	# stall for s6
+sw $t8, 0($s6)		# array[j] = contents from array[j+1]
 addi $t2, $zero, 1
 j innerCond
+nop	# stall for jump
 check: # if no elements were swapped in inner loop, stop bubbleSort and print results. otherwise, back to outerCond
-addi $s0, $s0, 1	# i++
 slti $t2, $t2, 1	# t2 = 1 when t2<1 (t2=true (1) ==> t2=0, t2=false (0) ==> t2=1)
+addi $s0, $s0, 1	# i++
+nop	# stall for t2
 beq $t2, $zero, outerCond
+nop
+nop
 #goes to printResults when nothing was swapped in innerCond
 
 printResults:
 addi $s0, $zero, 0	# i = 0
+nop
+nop	# stall for s0
 loop:
 slt $at, $s0, $s2	# at = 1 when i < N
+nop
+nop	#stall for at
 beq $at, $zero, exit
-
+nop
+nop	# stall for beq
 lw $t0, 0($s3)
 addi $s3, $s3, 4
 
