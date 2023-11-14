@@ -49,13 +49,13 @@ architecture mixed of Forwarding_Unit is
 
 		-- forwarding from EX/MEM to ALU input A
 		if ((i_EXMEM_RegWr = '1') and (i_EXMEM_Rd /= "00000") and (i_EXMEM_Rd = i_IDEX_Rs)) then
-			s_Forward_A <= "10";
+			s_Forward_A = "10";
 
 		-- forwarding from MEM/WB to ALU input A
 		elsif ((i_MEMWB_RegWr = '1') and (i_MEMWB_Rd /= "00000") and (i_MEMWB_Rd = i_IDEX_Rs)) then
-			s_Forward_A <= "01";
+			s_Forward_A = "01";
 		else
-			s_Forward_A <= "00";
+			s_Forward_A = "00";
 		end if;
 
 		-- if (MEM/WB.RegWrite == 1) and (MEM/WB.RegRd != 0) and not(EX/MEM.RegWrite and (EX/MEM.RegRd != 0) and (EX/MEM.RegRd == ID/EX.RegRs)) and (MEM/WB.RegRd == ID/EX.RegRs))
@@ -63,13 +63,13 @@ architecture mixed of Forwarding_Unit is
 
 		-- forwarding from EX/MEM to ALU input B
 		if ((i_EXMEM_RegWr = '1') and (i_EXMEM_Rd /= "00000") and (i_EXMEM_Rd = i_IDEX_Rs)) then
-			s_Forward_B <= "10";
+			s_Forward_B = "10";
 
 		-- forwarding from MEM/WB to ALU input B
 		elsif ((i_MEMWB_RegWr = '1') and (i_MEMWB_Rd /= "00000") and (i_MEMWB_Rd = i_IDEX_Rs)) then
-			s_Forward_B <= "01";
+			s_Forward_B = "01";
 		else
-			s_Forward_B <= "00";
+			s_Forward_B = "00";
 		end if;
 	end process;
 

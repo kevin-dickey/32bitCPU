@@ -52,7 +52,6 @@ architecture structure of AdderSubtractor_N is
 
 	signal s_invertedB : std_logic_vector(N-1 downto 0);
 	signal s_operatorB : std_logic_vector(N-1 downto 0);
-	signal s_Sums	   : std_logic_vector(31 downto 0);
 
 begin
 
@@ -70,16 +69,14 @@ begin
 		port MAP(i_op1		=> i_A,
 			 	 i_op2		=> s_operatorB,
 		 	 	 i_carryIn	=> i_nAdd_Sub,
-		 		 o_sum		=> s_Sums,
+		 		 o_sum		=> o_Sums,
 		 	 	 o_CarryOut => o_Carry_Out,
 				 o_overflow => o_Overflow);
-
-	o_Sums <= s_Sums;
 	
 	-- set o_Zero based on output of 32-bit and gate
-	process(s_Sums)
+	process(o_Sums)
 	begin
-		if (s_Sums = x"00000000") then
+		if (o_Sums = x"00000000") then
 			o_Zero <= '1';
 		else
 			o_Zero <= '0';
