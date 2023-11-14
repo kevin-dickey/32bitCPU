@@ -6,8 +6,11 @@ entity EX_MEM is
   port(i_CLK        : in std_logic;     -- Clock input
        i_RST        : in std_logic;     -- Reset input
 
-       i_wb          : in std_logic;
-       o_wb          : out std_logic;
+       i_MemtoRegWB          : in std_logic;
+       o_MemtoRegWB          : out std_logic;
+       i_RegWriteWB          : in std_logic;
+       o_RegWriteWB          : out std_logic;
+
        i_halt          : in std_logic;
        o_halt          : out std_logic;
 
@@ -51,14 +54,21 @@ begin
 --	       i_D	  when '0',
 --               x"00000000" when others;
 
-  dffWB: dffg
+  dffMemtoReg: dffg
 	port MAP(i_CLK	=> i_CLK,
 		i_RST	=> i_RST,
 		i_WE	=> '1',
-		i_D	=> i_wb,
-		o_Q	=> o_wb);
+		i_D	=> i_MemtoRegWB,
+		o_Q	=> o_MemtoRegWB);
 
-  dffEX: dffg
+  dffRegWrite: dffg
+	port MAP(i_CLK	=> i_CLK,
+		i_RST	=> i_RST,
+		i_WE	=> '1',
+		i_D	=> i_RegWriteWB,
+		o_Q	=> o_RegWriteWB);
+
+  dffHalt: dffg
 	port MAP(i_CLK	=> i_CLK,
 		i_RST	=> i_RST,
 		i_WE	=> '1',
