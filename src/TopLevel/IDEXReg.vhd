@@ -6,12 +6,23 @@ entity ID_EX is
   port(i_CLK        : in std_logic;     -- Clock input
        i_RST        : in std_logic;     -- Reset input
 
-       i_wb          : in std_logic;
-       o_wb          : out std_logic;
-       i_m          : in std_logic;
-       o_m          : out std_logic;
-       i_ex          : in std_logic;
-       o_ex          : out std_logic;
+       i_MemtoRegEx          : in std_logic;
+       o_MemtoRegEx          : out std_logic;
+       i_RegWriteEx          : in std_logic;
+       o_RegWriteEx          : out std_logic;
+
+       i_memWriteEx          : in std_logic;
+       o_memWriteEx          : out std_logic;
+       i_memReadEx          : in std_logic;
+       o_memReadEx          : out std_logic;
+
+       i_branchEx          : in std_logic;
+       o_branchEx          : out std_logic;
+       i_jumpEx          : in std_logic;
+       o_jumpEx          : out std_logic;
+       i_AluSrcEx          : in std_logic;
+       o_AluSrcEx          : out std_logic;
+
        i_halt          : in std_logic;
        o_halt          : out std_logic;
 
@@ -23,13 +34,13 @@ entity ID_EX is
        i_signExtend          : in std_logic_vector(31 downto 0);
        o_signExtend          : out std_logic_vector(31 downto 0);
 
-       i_rs          : in std_logic_vector(5 downto 0);
-       o_rs          : out std_logic_vector(5 downto 0);     
-       i_rt          : in std_logic_vector(5 downto 0);
-       o_rt          : out std_logic_vector(5 downto 0); 
+       i_rs          : in std_logic_vector(4 downto 0);
+       o_rs          : out std_logic_vector(4 downto 0);     
+       i_rt          : in std_logic_vector(4 downto 0);
+       o_rt          : out std_logic_vector(4 downto 0); 
 
-       i_Inst          : in std_logic_vector(31 downto 0);
-       o_Inst          : out std_logic_vector(31 downto 0));
+       i_rd          : in std_logic_vector(4 downto 0);
+       o_rd          : out std_logic_vector(4 downto 0));
        
 end ID_EX;
 
@@ -63,28 +74,56 @@ begin
 --	       i_D	  when '0',
 --               x"00000000" when others;
 
-  dffWB: dffg
+  dffWBReg: dffg
 	port MAP(i_CLK	=> i_CLK,
 		i_RST	=> i_RST,
 		i_WE	=> '1',
-		i_D	=> i_wb,
-		o_Q	=> o_wb);
+		i_D	=> i_MemtoRegEx,
+		o_Q	=> o_MemtoRegEx);
 
-  dffM: dffg
+  dffWBWrite: dffg
 	port MAP(i_CLK	=> i_CLK,
 		i_RST	=> i_RST,
 		i_WE	=> '1',
-		i_D	=> i_m,
-		o_Q	=> o_m);
+		i_D	=> i_RegWriteEx,
+		o_Q	=> o_RegWriteEx);
 
-  dffEX: dffg
+  dffMWrite: dffg
 	port MAP(i_CLK	=> i_CLK,
 		i_RST	=> i_RST,
 		i_WE	=> '1',
-		i_D	=> i_ex,
-		o_Q	=> o_ex);
+		i_D	=> i_memWriteEx,
+		o_Q	=> o_memWriteEx);
 
-  dffEX: dffg
+  dffMRead: dffg
+	port MAP(i_CLK	=> i_CLK,
+		i_RST	=> i_RST,
+		i_WE	=> '1',
+		i_D	=> i_memReadEx,
+		o_Q	=> o_memReadEx);
+
+  dffEXBranch: dffg
+	port MAP(i_CLK	=> i_CLK,
+		i_RST	=> i_RST,
+		i_WE	=> '1',
+		i_D	=> i_branchEx,
+		o_Q	=> o_branchEx);
+
+  dffEXJump: dffg
+	port MAP(i_CLK	=> i_CLK,
+		i_RST	=> i_RST,
+		i_WE	=> '1',
+		i_D	=> i_jumpEx,
+		o_Q	=> o_jumpEx);
+
+  dffEXAluSrc: dffg
+	port MAP(i_CLK	=> i_CLK,
+		i_RST	=> i_RST,
+		i_WE	=> '1',
+		i_D	=> i_AluSrcEx,
+		o_Q	=> o_AluSrcEx);
+
+  dffHalt: dffg
 	port MAP(i_CLK	=> i_CLK,
 		i_RST	=> i_RST,
 		i_WE	=> '1',
@@ -112,15 +151,16 @@ begin
 		i_Reset	=> '0',
 		o_Out	=> o_signExtend);
 
-  RegInst: reg_N
-	port MAP(i_In	=> i_Inst,
+  RegRd: reg_N
+  	generic map(N => 5)
+	port MAP(i_In	=> i_rd,
 		i_Clk	=> i_CLK,
 		i_WrEn	=> '1',
 		i_Reset	=> '0',
-		o_Out	=> o_Inst);
+		o_Out	=> o_rd);
 
   RegRs: reg_N
-  	generic map(N => 6)
+  	generic map(N => 5)
 	port MAP(i_In	=> i_rs,
 		i_Clk	=> i_CLK,
 		i_WrEn	=> '1',
@@ -128,7 +168,7 @@ begin
 		o_Out	=> o_rs);
 
   RegRt: reg_N
-  	generic map(N => 6)
+  	generic map(N => 5)
 	port MAP(i_In	=> i_rt,
 		i_Clk	=> i_CLK,
 		i_WrEn	=> '1',
