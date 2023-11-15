@@ -28,7 +28,7 @@ end register_file;
 
 architecture structural of register_file is
 
-	component reg_N is
+	component reg_N_falling is
 		generic(N : integer := 32);
 		port(i_In		: in std_logic_vector(N-1 downto 0);		-- N-bit input
 		 	 i_Clk		: in std_logic;								-- Clock signal, synchronous for all DFFs in N-bit register
@@ -55,7 +55,7 @@ architecture structural of register_file is
 begin
 
 	-- Instantiate the zero register, will always hold the value 0
-	g_zeroRegister: reg_N	
+	g_zeroRegister: reg_N_falling	
 		port MAP(i_In	 => i_Data,	-- essentially redundant, will never have any effect on value stored in this register
 				 i_Clk	 => i_CLK,
 				 i_WrEn	 => s_regSelectLines(0),
@@ -64,7 +64,7 @@ begin
 
 	-- Instantiate N (31) 32-bit registers.
 	G_NRegisters: for i in 1 to N-1 generate	
-		REGi: reg_N port map(
+		REGi: reg_N_falling port map(
 						i_In	=> i_Data,
 						i_Clk	=> i_CLK,
 						i_WrEn	=> s_regSelectLines(i),

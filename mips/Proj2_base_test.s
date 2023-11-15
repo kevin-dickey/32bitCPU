@@ -8,10 +8,15 @@ text: .asciiz "cool things "
 # look over again for branches and jumps
 
 main:
-    la $s0, array
+    lui $at, 4097
+    add $0, $0, $0
+    add $0, $0, $0	# stall for at
+    ori $s0, $at, 0	# decoded "la $s0, array" into this
     addi $t1, $t0, 5	# testing framework uses reset signal before each test so this should store 5 into t1 no problem :)
     add $t2, $t0, $zero
     lw $t0, 4($s0)
+    add $0, $0, $0
+    add $0, $0, $0	# stall for t0
     and $t1, $t0, $t1
     addiu $t3, $t2, 15
     nop		# stall for t3 (and t1)
@@ -20,6 +25,8 @@ main:
     lui $t3, 15
     xori $t2, $t1, 16383
     srl $t3, $t0, 3
+    add $0, $0, $0
+    add $0, $0, $0
     sra $t4, $t3, 2
     sll $t2, $t0, 1
     nor $t0, $t3, $zero
@@ -51,8 +58,8 @@ main:
     
 equal:
     jal cond
-    nop
-    nop		# stall for jump & link
+    add $0, $0, $0
+    add $0, $0, $0		# stall for jump & link
     j exit
     nop		# stall for jump
     

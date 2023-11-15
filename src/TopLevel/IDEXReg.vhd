@@ -22,6 +22,11 @@ entity ID_EX is
        o_jumpEx          : out std_logic;
        i_AluSrcEx          : in std_logic;
        o_AluSrcEx          : out std_logic;
+       i_ctlEx          : in std_logic;
+       o_ctlEx          : out std_logic;
+       i_jLinkEX          : in std_logic;
+       o_jLinkEX          : out std_logic;
+
 
        i_halt          : in std_logic;
        o_halt          : out std_logic;
@@ -30,6 +35,9 @@ entity ID_EX is
        o_Reg1          : out std_logic_vector(31 downto 0);
        i_Reg2          : in std_logic_vector(31 downto 0);
        o_Reg2          : out std_logic_vector(31 downto 0);
+
+       i_PCEX          : in std_logic_vector(31 downto 0);
+       o_PCEX          : out std_logic_vector(31 downto 0);
 
        i_signExtend          : in std_logic_vector(31 downto 0);
        o_signExtend          : out std_logic_vector(31 downto 0);
@@ -126,6 +134,20 @@ begin
 		i_D	=> i_AluSrcEx,
 		o_Q	=> o_AluSrcEx);
 
+  dffEXctl: dffg
+	port MAP(i_CLK	=> i_CLK,
+		i_RST	=> i_RST,
+		i_WE	=> '1',
+		i_D	=> i_ctlEx,
+		o_Q	=> o_ctlEx);
+
+  dffEXjLink: dffg
+	port MAP(i_CLK	=> i_CLK,
+		i_RST	=> i_RST,
+		i_WE	=> '1',
+		i_D	=> i_jLinkEX,
+		o_Q	=> o_jLinkEX);
+
   dffHalt: dffg
 	port MAP(i_CLK	=> i_CLK,
 		i_RST	=> i_RST,
@@ -153,6 +175,13 @@ begin
 		i_WrEn	=> '1',
 		i_Reset	=> '0',
 		o_Out	=> o_InstALU);
+
+  RegPCEX: reg_N
+	port MAP(i_In	=> i_PCEX,
+		i_Clk	=> i_CLK,
+		i_WrEn	=> '1',
+		i_Reset	=> '0',
+		o_Out	=> o_PCEX);
 
   RegSignExt: reg_N
 	port MAP(i_In	=> i_signExtend,

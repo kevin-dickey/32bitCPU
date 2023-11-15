@@ -18,6 +18,11 @@ entity MEM_WB is
 
        i_halt          : in std_logic;
        o_halt          : out std_logic;
+       i_jLinkM          : in std_logic;
+       o_jLinkM          : out std_logic;
+
+       i_PCM          : in std_logic_vector(31 downto 0);
+       o_PCM          : out std_logic_vector(31 downto 0);
 
        i_ALU          : in std_logic_vector(31 downto 0);
        o_ALU          : out std_logic_vector(31 downto 0);
@@ -87,12 +92,27 @@ begin
 		i_D	=> i_memReadM,
 		o_Q	=> o_memReadM);
 
-  dffEX: dffg
+  dffHaltEX: dffg
 	port MAP(i_CLK	=> i_CLK,
 		i_RST	=> i_RST,
 		i_WE	=> '1',
 		i_D	=> i_halt,
 		o_Q	=> o_halt);
+
+
+  dffjLinkEX: dffg
+	port MAP(i_CLK	=> i_CLK,
+		i_RST	=> i_RST,
+		i_WE	=> '1',
+		i_D	=> i_jLinkM,
+		o_Q	=> o_jLinkM);
+
+  RegPCWB: reg_N
+	port MAP(i_In	=> i_PCM,
+		i_Clk	=> i_CLK,
+		i_WrEn	=> '1',
+		i_Reset	=> '0',
+		o_Out	=> o_PCM);
 
   RegSignALU: reg_N
 	port MAP(i_In	=> i_ALU,

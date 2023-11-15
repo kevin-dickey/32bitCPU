@@ -13,6 +13,11 @@ entity EX_MEM is
 
        i_halt          : in std_logic;
        o_halt          : out std_logic;
+       i_jLinkWB          : in std_logic;
+       o_jLinkWB          : out std_logic;
+
+       i_PCWB          : in std_logic_vector(31 downto 0);
+       o_PCWB          : out std_logic_vector(31 downto 0);
 
        i_ALU          : in std_logic_vector(31 downto 0);
        o_ALU          : out std_logic_vector(31 downto 0);
@@ -75,6 +80,13 @@ begin
 		i_D	=> i_halt,
 		o_Q	=> o_halt);
 
+  dffJLinkWB: dffg
+	port MAP(i_CLK	=> i_CLK,
+		i_RST	=> i_RST,
+		i_WE	=> '1',
+		i_D	=> i_jLinkWB,
+		o_Q	=> o_jLinkWB);
+
   dmemReg: reg_N
 	port MAP(i_In	=> i_dmem,
 		i_Clk	=> i_CLK,
@@ -88,6 +100,13 @@ begin
 		i_WrEn	=> '1',
 		i_Reset	=> '0',
 		o_Out	=> o_ALU);
+
+  RegPCM: reg_N
+	port MAP(i_In	=> i_PCWB,
+		i_Clk	=> i_CLK,
+		i_WrEn	=> '1',
+		i_Reset	=> '0',
+		o_Out	=> o_PCWB);
 
   RegInst: reg_N
   	generic map(N => 5)

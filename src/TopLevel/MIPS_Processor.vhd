@@ -63,7 +63,7 @@ architecture structure of MIPS_Processor is
   signal s_Branch : std_logic;
   signal s_MemRead : std_logic;
   signal s_MemtoReg : std_logic;
-  signal s_brAz	: std_logic;
+  signal s_brAz	: std_logic := '0';
  -- signal s_MemWrite : std_logic;
   signal s_ALUSrc : std_logic;
  -- signal s_RegWrite : std_logic;
@@ -90,34 +90,41 @@ architecture structure of MIPS_Processor is
   signal s_ALUSrcD : std_logic;
 
   --Ex control signals
-  signal s_BranchEx : std_logic;
-  signal s_JumpEx : std_logic;
+  signal s_BranchEx : std_logic := '0';
+  signal s_JumpEx : std_logic := '0';
   signal s_ALuSrcEx : std_logic;
   signal s_MemtoRegEx : std_logic;
   signal s_RegWriteEx : std_logic;
   signal s_memWriteEx : std_logic;
   signal s_memReadEx : std_logic;
   signal s_HaltEx : std_logic;
+  signal s_ctlEX : std_logic;
+  signal s_jLinkEX : std_logic;
   signal s_rsEx : std_logic_vector(4 downto 0);
   signal s_rtEx : std_logic_vector(4 downto 0);
   signal s_rdEx : std_logic_vector(4 downto 0);
   signal s_SignExtendedEx : std_logic_vector(N-1 downto 0);
+  signal s_PCEX : std_logic_vector(N-1 downto 0);
 
   --M control signals
   signal s_MemtoRegM : std_logic;
   signal s_RegWriteM : std_logic;
   signal s_memWriteM : std_logic;
   signal s_HaltM : std_logic;
+  signal s_jLinkM : std_logic;
   signal s_ALUM : std_logic_vector(31 downto 0);
   signal s_WriteDataM : std_logic_vector(31 downto 0);
   signal s_InstM : std_logic_vector(4 downto 0);
+  signal s_PCM : std_logic_vector(N-1 downto 0);
 
   --WB control signals
   signal s_MemtoRegWB : std_logic;
+  signal s_jLinkWB : std_logic;
 --  signal s_RegWriteWB : std_logic;
   signal s_ALUWB : std_logic_vector(31 downto 0);
   signal s_DMemOutWB : std_logic_vector(31 downto 0);
 --  signal s_InstWB : std_logic_vector(4 downto 0);
+  signal s_PCWB : std_logic_vector(N-1 downto 0);
 
   --Fetch/pc signals
   signal s_PC : std_logic_vector(N-1 downto 0);
@@ -128,7 +135,7 @@ architecture structure of MIPS_Processor is
   signal ALUaddress : std_logic_vector(N-1 downto 0);
   signal jumpAddress : std_logic_vector(N-1 downto 0);
   signal s_PCB4 : std_logic_vector(N-1 downto 0);
-  signal s_jmpStrt : std_logic;
+  signal s_jmpStrt : std_logic := '0';
   signal s_nRST : std_logic;
   signal s_newPC : std_logic_vector(N-1 downto 0);
   signal s_InstF : std_logic_vector(N-1 downto 0);
@@ -226,6 +233,10 @@ component ID_EX is
        o_jumpEx          : out std_logic;
        i_AluSrcEx          : in std_logic;
        o_AluSrcEx          : out std_logic;
+       i_ctlEx          : in std_logic;
+       o_ctlEx          : out std_logic;
+       i_jLinkEX          : in std_logic;
+       o_jLinkEX          : out std_logic;
 
        i_halt          : in std_logic;
        o_halt          : out std_logic;
@@ -234,6 +245,9 @@ component ID_EX is
        o_Reg1          : out std_logic_vector(31 downto 0);
        i_Reg2          : in std_logic_vector(31 downto 0);
        o_Reg2          : out std_logic_vector(31 downto 0);
+
+       i_PCEX          : in std_logic_vector(31 downto 0);
+       o_PCEX          : out std_logic_vector(31 downto 0);
 
        i_signExtend          : in std_logic_vector(31 downto 0);
        o_signExtend          : out std_logic_vector(31 downto 0);
@@ -267,6 +281,11 @@ component MEM_WB is
 
        i_halt          : in std_logic;
        o_halt          : out std_logic;
+       i_jLinkM          : in std_logic;
+       o_jLinkM          : out std_logic;
+
+       i_PCM          : in std_logic_vector(31 downto 0);
+       o_PCM          : out std_logic_vector(31 downto 0);
 
        i_ALU          : in std_logic_vector(31 downto 0);
        o_ALU          : out std_logic_vector(31 downto 0);
@@ -289,6 +308,11 @@ component EX_MEM is
 
        i_halt          : in std_logic;
        o_halt          : out std_logic;
+       i_jLinkWB          : in std_logic;
+       o_jLinkWB          : out std_logic;
+
+       i_PCWB          : in std_logic_vector(31 downto 0);
+       o_PCWB          : out std_logic_vector(31 downto 0);
 
        i_ALU          : in std_logic_vector(31 downto 0);
        o_ALU          : out std_logic_vector(31 downto 0);
@@ -455,15 +479,15 @@ ADDERI: RippleCarryAdder_N port map(
 	      o_carryOut      => s_carryOut1,
 	      o_sum      => Temp1);	
 
-    s_brAz <= s_zero and s_Branch;
+    s_brAz <= s_zero and s_BranchEx;
 
     MUXI2: mux2t1_N port map(
               i_S      => s_brAz,      
-              i_D0     => s_PC,  
+              i_D0     => s_PC4,  
               i_D1     => Temp1, 
-              o_O      => ALUaddress);
+              o_O      => ALUaddress); -- branch address
 
-    s_jmpStrt <= s_Jump and (not iRST);
+    s_jmpStrt <= s_JumpEx and (not iRST);
     MUXI: mux2t1_N port map(
               i_S      => s_jmpStrt,   
               i_D0     => ALUaddress,  
@@ -479,7 +503,7 @@ ADDERI: RippleCarryAdder_N port map(
 
 PC: MIPS_pc port map(i_CLK => iCLK,
        i_RST => iRST,
-       i_D  => s_PC4,--Should be s_PCi
+       i_D  => s_PCi,--Should be s_PCi, was PC4
        o_Q  => s_NextInstAddr);
 
 ADDER4I: RippleCarryAdder_N port map(
@@ -614,6 +638,11 @@ IDEX: ID_EX
        o_jumpEx => s_JumpEx,
        i_AluSrcEx => s_ALUSrcD,
        o_AluSrcEx => s_ALuSrcEx,
+       i_ctlEx => s_ctl,
+       o_ctlEx => s_ctlEX,
+       i_jLinkEX => s_jLink,
+       o_jLinkEX => s_jLinkEX,
+
 
        i_halt => s_HaltD,
        o_halt => s_HaltEx,
@@ -622,6 +651,9 @@ IDEX: ID_EX
        o_Reg1 => s_ALU1,
        i_Reg2 => s_ALU2D,
        o_Reg2 => s_ALU2,
+
+       i_PCEX => s_PC,
+       o_PCEX => s_PCEX,
 
        i_signExtend => s_SignExtendedD,
        o_signExtend => s_SignExtendedEx,
@@ -650,6 +682,11 @@ EXMEM: EX_MEM
 
        i_halt => s_HaltM,
        o_halt => s_Halt,
+       i_jLinkWB => s_jLinkM,
+       o_jLinkWB => s_jLinkWB,
+
+       i_PCWB => s_PCM,
+       o_PCWB => s_PCWB,
 
        i_ALU => s_DMemAddr,
        o_ALU => s_ALUWB,
@@ -719,7 +756,7 @@ ALUI: proj1_alu
 		i_opcode => s_InstEX(31 downto 26),
 		i_func => s_InstEX(5 downto 0),
 		i_shift => s_InstEX(10 downto 6),
-		i_ctl => s_ctl,
+		i_ctl => s_ctlEX,
 		i_shift_typ => s_SoZextend,
 		o_carryout => s_carryout,
 		o_if => s_if,
@@ -748,6 +785,11 @@ MEMWB: MEM_WB
 
        i_halt => s_HaltEx,
        o_halt => s_HaltM,
+       i_jLinkM => s_jLinkEX,
+       o_jLinkM => s_jLinkM,
+
+       i_PCM => s_PCEX,
+       o_PCM => s_PCM,
 
        i_ALU => s_ALU,
        o_ALU => s_DMemAddr,
@@ -771,9 +813,9 @@ MEMWB: MEM_WB
               o_O      => s_jalpc4);
 
     WriteDataMUX: mux2t1_N port map(
-              i_S      => s_jLink,      
+              i_S      => s_jLinkWB,      
               i_D0     => s_jalpc4, 
-              i_D1     => s_PC, 
+              i_D1     => s_PCWB, 
               o_O      => s_RegWrData);
 
 
