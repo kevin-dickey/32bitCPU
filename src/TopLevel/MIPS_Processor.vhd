@@ -77,10 +77,13 @@ architecture structure of MIPS_Processor is
 
   signal s_ALU1D : std_logic_vector(N-1 downto 0);
   signal s_ALU2D : std_logic_vector(N-1 downto 0);
+  signal s_RegWrAddrD : std_logic_vector(4 downto 0);
 
   signal s_MemtoRegD : std_logic;
   signal s_RegWrD : std_logic;
+  signal s_RegWrD1 : std_logic;
   signal s_DMemWrD : std_logic;
+  signal s_DMemWrD1 : std_logic;
   signal s_MemReadD : std_logic;
   signal s_BranchD : std_logic;
   signal s_JumpD : std_logic;
@@ -111,11 +114,10 @@ architecture structure of MIPS_Processor is
 
   --WB control signals
   signal s_MemtoRegWB : std_logic;
-  signal s_RegWriteWB : std_logic;
-  signal s_HaltWB : std_logic;
+--  signal s_RegWriteWB : std_logic;
   signal s_ALUWB : std_logic_vector(31 downto 0);
   signal s_DMemOutWB : std_logic_vector(31 downto 0);
-  signal s_InstWB : std_logic_vector(4 downto 0);
+--  signal s_InstWB : std_logic_vector(4 downto 0);
 
   --Fetch/pc signals
   signal s_PC : std_logic_vector(N-1 downto 0);
@@ -207,6 +209,9 @@ component ID_EX is
        o_MemtoRegEx          : out std_logic;
        i_RegWriteEx          : in std_logic;
        o_RegWriteEx          : out std_logic;
+
+
+
 
        i_memWriteEx          : in std_logic;
        o_memWriteEx          : out std_logic;
@@ -438,8 +443,8 @@ begin
 	s_ShiftedSignExtend(0) <= '0';
 
 ADDERI: RippleCarryAdder_N port map(
-              i_op1     => s_ShiftedSignExtend,  -- ith instance's data 0 input hooked up to ith data 0 inputmight need another array for carry bits(then could add again or implement using the carry bit(add then add the previous term with the current bit, two adds per iteration of the for loop))
-              i_op2      => s_PC,  -- ith instance's data output hooked up to ith data output.
+              i_op1     => s_ShiftedSignExtend, 
+              i_op2      => s_PC,  
 	      i_carryIn      => '0',
 	      o_overflow      => s_overflow1,
 	      o_carryOut      => s_carryOut1,
@@ -448,37 +453,33 @@ ADDERI: RippleCarryAdder_N port map(
     s_brAz <= s_zero and s_Branch;
 
     MUXI2: mux2t1_N port map(
-              i_S      => s_brAz,      -- All instances share the same select input.
-              i_D0     => s_PC,  -- ith instance's data 0 input hooked up to ith data 0 input.
-              i_D1     => Temp1,  -- ith instance's data 1 input hooked up to ith data 1 input.
-              o_O      => ALUaddress);  -- ith instance's data output hooked up to ith data output.
+              i_S      => s_brAz,      
+              i_D0     => s_PC,  
+              i_D1     => Temp1, 
+              o_O      => ALUaddress);
 
     s_jmpStrt <= s_Jump and (not iRST);
     MUXI: mux2t1_N port map(
-              i_S      => s_jmpStrt,      -- All instances share the same select input.
-              i_D0     => ALUaddress,  -- ith instance's data 0 input hooked up to ith data 0 input.
-              i_D1     => s_jumpAddress,  -- ith instance's data 1 input hooked up to ith data 1 input.
-              o_O      => s_newPC);  -- ith instance's data output hooked up to ith data output.
+              i_S      => s_jmpStrt,   
+              i_D0     => ALUaddress,  
+              i_D1     => s_jumpAddress,
+              o_O      => s_newPC); 
 
---PC: Fetch port map(
---              CLK     => iCLK,
---	      i_Input      => s_PCi, 
---	      o_Out      => s_PC);
     jumpRegMux: mux2t1_N port map(
-              i_S      => s_jReg,      -- All instances share the same select input.
-              i_D0     => s_newPC,  -- ith instance's data 0 input hooked up to ith data 0 input.
-              i_D1     => s_ALU1,  -- ith instance's data 1 input hooked up to ith data 1 input.
-              o_O      => s_PCi);  -- ith instance's data output hooked up to ith data output.
+              i_S      => s_jReg,      
+              i_D0     => s_newPC,  
+              i_D1     => s_ALU1,  
+              o_O      => s_PCi); 
 	
 
 PC: MIPS_pc port map(i_CLK => iCLK,
        i_RST => iRST,
-       i_D  => s_PCi,
+       i_D  => s_PC4,--Should be s_PCi
        o_Q  => s_NextInstAddr);
 
 ADDER4I: RippleCarryAdder_N port map(
               i_op1     => s_NextInstAddr,  -- ith instance's data 0 input hooked up to ith data 0 inputmight need another array for carry bits(then could add again or implement using the carry bit(add then add the previous term with the current bit, two adds per iteration of the for loop))
-              i_op2      => x"00000004",  -- ith instance's data output hooked up to ith data output.
+              i_op2      => x"00000004",
 	      i_carryIn      => '0',
 	      o_overflow      => s_overflow2,
 	      o_carryOut      => s_carryOut2,
@@ -486,10 +487,10 @@ ADDER4I: RippleCarryAdder_N port map(
 
 
 
-IMem: mem --need to have the right values here
+IMem: mem
 	generic map(ADDR_WIDTH => ADDR_WIDTH,
                  DATA_WIDTH => N)
-	port map(addr => s_IMemAddr(11 downto 2), -- need fixed
+	port map(addr => s_IMemAddr(11 downto 2), 
 		 we => iInstLd,
 		 data => iInstExt,
 		 clk  => iCLK,
@@ -505,53 +506,53 @@ IFID: iF_ID
 
     HazMemtoRegMUX: mux2t1
 	port map(
-              i_S      => '1',      -- All instances share the same select input.
-              i_D0     => '0',  -- ith instance's data 0 input hooked up to ith data 0 input.
-              i_D1     => s_MemtoReg,  -- ith instance's data 1 input hooked up to ith data 1 input.
-              o_O      => s_MemtoRegD);  -- ith instance's data output hooked up to ith data output.
+              i_S      => '1',   
+              i_D0     => '0', 
+              i_D1     => s_MemtoReg,
+              o_O      => s_MemtoRegD);
 
     HazRegWriteMUX: mux2t1
 	port map(
-              i_S      => '1',      -- All instances share the same select input.
-              i_D0     => '0',  -- ith instance's data 0 input hooked up to ith data 0 input.
-              i_D1     => s_RegWr,  -- ith instance's data 1 input hooked up to ith data 1 input.
-              o_O      => s_RegWrD);  -- ith instance's data output hooked up to ith data output.
+              i_S      => '1',      
+              i_D0     => '0',  
+              i_D1     => s_RegWrD1,
+              o_O      => s_RegWrD);  
 
     HazmemWriteMUX: mux2t1
 	port map(
-              i_S      => '1',      -- All instances share the same select input.
-              i_D0     => '0',  -- ith instance's data 0 input hooked up to ith data 0 input.
-              i_D1     => s_DMemWr,  -- ith instance's data 1 input hooked up to ith data 1 input.
-              o_O      => s_DMemWrD);  -- ith instance's data output hooked up to ith data output.
+              i_S      => '1',    
+              i_D0     => '0', 
+              i_D1     => s_DMemWrD1,
+              o_O      => s_DMemWrD);  
 
     HazmemReadMUX: mux2t1
 
 	port map(
-              i_S      => '1',      -- All instances share the same select input.
-              i_D0     => '0',  -- ith instance's data 0 input hooked up to ith data 0 input.
-              i_D1     => s_MemRead,  -- ith instance's data 1 input hooked up to ith data 1 input.
-              o_O      => s_MemReadD);  -- ith instance's data output hooked up to ith data output.
+              i_S      => '1',   
+              i_D0     => '0', 
+              i_D1     => s_MemRead,  
+              o_O      => s_MemReadD); 
 
     HazBranchMUX: mux2t1
 	port map(
-              i_S      => '1',      -- All instances share the same select input.
-              i_D0     => '0',  -- ith instance's data 0 input hooked up to ith data 0 input.
-              i_D1     => s_Branch,  -- ith instance's data 1 input hooked up to ith data 1 input.
-              o_O      => s_BranchD);  -- ith instance's data output hooked up to ith data output.
+              i_S      => '1',     
+              i_D0     => '0', 
+              i_D1     => s_Branch, 
+              o_O      => s_BranchD); 
 
     HazJumpMUX: mux2t1
 	port map(
-              i_S      => '1',      -- All instances share the same select input.
-              i_D0     => '0',  -- ith instance's data 0 input hooked up to ith data 0 input.
-              i_D1     => s_Jump,  -- ith instance's data 1 input hooked up to ith data 1 input.
-              o_O      => s_JumpD);  -- ith instance's data output hooked up to ith data output.
+              i_S      => '1',  
+              i_D0     => '0', 
+              i_D1     => s_Jump, 
+              o_O      => s_JumpD);
 
     HazAluSrcMUX: mux2t1
 	port map(
-              i_S      => '1',      -- All instances share the same select input.
-              i_D0     => '0',  -- ith instance's data 0 input hooked up to ith data 0 input.
-              i_D1     => s_ALUSrc,  -- ith instance's data 1 input hooked up to ith data 1 input.
-              o_O      => s_ALUSrcD);  -- ith instance's data output hooked up to ith data output.
+              i_S      => '1',    
+              i_D0     => '0', 
+              i_D1     => s_ALUSrc, 
+              o_O      => s_ALUSrcD); 
 
 IDEX: ID_EX
   port map(i_CLK => iCLK,
@@ -590,33 +591,10 @@ IDEX: ID_EX
        i_rt => s_InstF(20 downto 16),
        o_rt => s_rtEx,
 
-       i_rd => s_RegWrAddr,
+       i_rd => s_RegWrAddrD,
        o_rd => s_rdEx);
 
-MEMWB: MEM_WB
-  port map(i_CLK => iCLK,
-       i_RST => '0',
 
-       i_MemtoRegM => s_MemtoRegEx,
-       o_MemtoRegM => s_MemtoRegM,
-       i_RegWriteM => s_RegWriteEx,
-       o_RegWriteM => s_RegWriteM,
-
-       i_memWriteM => s_memWriteEx,
-       o_memWriteM => s_memWriteM,
-       i_memReadM => s_memReadEx,
-       o_memReadM => s_memWriteM,
-
-       i_halt => s_HaltEx,
-       o_halt => s_HaltM,
-
-       i_ALU => s_ALU,
-       o_ALU => s_ALUM,
-       i_ALU2 => s_ALU2D,
-       o_ALU2 => s_WriteDataM,
-
-       i_Inst => s_rdEx,
-       o_Inst => s_InstM);
 
 EXMEM: EX_MEM
   port map(i_CLK => iCLK,
@@ -625,26 +603,26 @@ EXMEM: EX_MEM
        i_MemtoRegWB => s_MemtoRegM,
        o_MemtoRegWB => s_MemtoRegWB,
        i_RegWriteWB => s_RegWriteM,
-       o_RegWriteWB => s_RegWriteWB,
+       o_RegWriteWB => s_RegWr,
 
        i_halt => s_HaltM,
-       o_halt => s_HaltWB,
+       o_halt => s_Halt,
 
-       i_ALU => s_ALUM,
+       i_ALU => s_DMemAddr,
        o_ALU => s_ALUWB,
        i_Dmem => s_DMemOut,
        o_Dmem => s_DMemOutWB,
 
        i_Inst => s_InstM,
-       o_Inst => s_InstWB);
+       o_Inst => s_RegWrAddr);
        
  controlI: control
 	port map(opcodeinstruction  => 	s_InstF(31 downto 26),
 	functinstruction  => s_InstF(5 downto 0),
    	ALUSrc  => s_ALUSrc,
    	MemtoReg   => s_MemtoReg,
-   	RegWrite  => s_RegWr,
-   	MemWrite  => s_DMemWr,
+   	RegWrite  => s_RegWrD1,
+   	MemWrite  => s_DMemWrD1,
    	MemRead  => s_MemRead,
    	branch  => s_Branch,
    	jump  => s_Jump,
@@ -663,18 +641,18 @@ signExtendI: signExtend
     WriteMUX: mux2t1_N 
   	generic map(N => 5)
 	port map(
-              i_S      => s_RegDst,      -- All instances share the same select input.
-              i_D0     => s_InstF(20 downto 16),  -- ith instance's data 0 input hooked up to ith data 0 input.
-              i_D1     => s_InstF(15 downto 11),  -- ith instance's data 1 input hooked up to ith data 1 input.
-              o_O      => s_intermediateWriteReg);  -- ith instance's data output hooked up to ith data output.
+              i_S      => s_RegDst,    
+              i_D0     => s_InstF(20 downto 16), 
+              i_D1     => s_InstF(15 downto 11), 
+              o_O      => s_intermediateWriteReg); 
 
     JALMux: mux2t1_N 
   	generic map(N => 5)
 	port map(
-              i_S      => s_jLink,      -- All instances share the same select input.
-              i_D0     => s_intermediateWriteReg,  -- ith instance's data 0 input hooked up to ith data 0 input.
-              i_D1     => "11111",  -- ith instance's data 1 input hooked up to ith data 1 input.
-              o_O      => s_RegWrAddr);  -- ith instance's data output hooked up to ith data output.
+              i_S      => s_jLink,    
+              i_D0     => s_intermediateWriteReg,  
+              i_D1     => "11111",
+              o_O      => s_RegWrAddrD);  
 
 Registers: register_file 
   port map(i_WrAddr => s_RegWrAddr, 
@@ -682,7 +660,7 @@ Registers: register_file
 	   i_RAddr2 => s_InstF(20 downto 16),
 	   i_Data => s_RegWrData,
 	   i_Rst => iRST,
-	   i_WrEnable => s_RegWriteWB,
+	   i_WrEnable => s_RegWr,
 	   i_CLK => iCLK,
 	   o_Rd1 => s_ALU1D,
            o_Rd2 => s_ALU2D);
@@ -708,26 +686,51 @@ ALUI: proj1_alu
 
 oALUOut <= s_ALU;
 
-s_DMemData <= s_ALU2;
-s_DMemAddr <= s_ALU;
+--s_DMemData <= s_ALU2;
+--s_DMemAddr <= s_ALU;
 
- DMem: mem --need to have the right values here
-	port map(addr => s_DMemAddr(11 downto 2), -- need fixed
-		 we => s_DMemWr,--need fixed
+MEMWB: MEM_WB
+  port map(i_CLK => iCLK,
+       i_RST => '0',
+
+       i_MemtoRegM => s_MemtoRegEx,
+       o_MemtoRegM => s_MemtoRegM,
+       i_RegWriteM => s_RegWriteEx,
+       o_RegWriteM => s_RegWriteM,
+
+       i_memWriteM => s_memWriteEx,
+       o_memWriteM => s_DMemWr,
+       i_memReadM => s_memReadEx,
+       o_memReadM => s_memWriteM,
+
+       i_halt => s_HaltEx,
+       o_halt => s_HaltM,
+
+       i_ALU => s_ALU,
+       o_ALU => s_DMemAddr,
+       i_ALU2 => s_ALU2,
+       o_ALU2 => s_DMemData,
+
+       i_Inst => s_rdEx,
+       o_Inst => s_InstM);
+
+ DMem: mem 
+	port map(addr => s_DMemAddr(11 downto 2), 
+		 we => s_DMemWr,
 		 data => s_DMemData,
 		 clk  => iCLK,
 		 q => s_DMemOut);
 
     MUXDataMem: mux2t1_N port map(
-              i_S      => s_MemtoRegWB,      -- All instances share the same select input.
-              i_D0     => s_ALUWB,  -- ith instance's data 0 input hooked up to ith data 0 input.
-              i_D1     => s_DMemOutWB,  -- ith instance's data 1 input hooked up to ith data 1 input.
+              i_S      => s_MemtoRegWB,      
+              i_D0     => s_ALUWB, 
+              i_D1     => s_DMemOutWB,  
               o_O      => s_jalpc4);
 
     WriteDataMUX: mux2t1_N port map(
-              i_S      => s_jLink,      -- All instances share the same select input.
-              i_D0     => s_jalpc4,  -- ith instance's data 0 input hooked up to ith data 0 input.
-              i_D1     => s_PC,  -- ith instance's data 1 input hooked up to ith data 1 input.
+              i_S      => s_jLink,      
+              i_D0     => s_jalpc4, 
+              i_D1     => s_PC, 
               o_O      => s_RegWrData);
 
 
