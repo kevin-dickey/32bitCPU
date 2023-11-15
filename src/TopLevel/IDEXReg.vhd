@@ -147,7 +147,7 @@ begin
 		i_Reset	=> '0',
 		o_Out	=> o_Reg2);
 
-  RegSignExt: reg_N
+  RegInstruct: reg_N
 	port MAP(i_In	=> i_InstALU,
 		i_Clk	=> i_CLK,
 		i_WrEn	=> '1',

@@ -132,6 +132,7 @@ architecture structure of MIPS_Processor is
   signal s_nRST : std_logic;
   signal s_newPC : std_logic_vector(N-1 downto 0);
   signal s_InstF : std_logic_vector(N-1 downto 0);
+  signal s_dummyInst : std_logic_vector(N-1 downto 0);
 
 
   --Sign-extended signal
@@ -144,6 +145,7 @@ architecture structure of MIPS_Processor is
   signal s_zero : std_logic;
   signal s_if : std_logic;
   signal s_ALU : std_logic_vector(N-1 downto 0);
+  signal s_InstEX : std_logic_vector(N-1 downto 0);
 
   --Register signals
   signal s_intermediateWriteReg : std_logic_vector(4 downto 0);
@@ -235,6 +237,9 @@ component ID_EX is
 
        i_signExtend          : in std_logic_vector(31 downto 0);
        o_signExtend          : out std_logic_vector(31 downto 0);
+
+	i_InstALU		: in std_logic_vector(31 downto 0);
+	o_InstALU		: out std_logic_vector(31 downto 0);
 
        i_rs          : in std_logic_vector(4 downto 0);
        o_rs          : out std_logic_vector(4 downto 0);     
@@ -494,7 +499,42 @@ IMem: mem
 		 we => iInstLd,
 		 data => iInstExt,
 		 clk  => iCLK,
-		 q => s_Inst);
+		 q => s_dummyInst);
+
+s_Inst(31) <= s_dummyInst(31) and (not iRST);
+s_Inst(30) <= s_dummyInst(30) and (not iRST);
+s_Inst(29) <= s_dummyInst(29) and (not iRST);
+s_Inst(28) <= s_dummyInst(28) and (not iRST);
+s_Inst(27) <= s_dummyInst(27) and (not iRST);
+s_Inst(26) <= s_dummyInst(26) and (not iRST);
+s_Inst(25) <= s_dummyInst(25) and (not iRST);
+s_Inst(24) <= s_dummyInst(24) and (not iRST);
+s_Inst(23) <= s_dummyInst(23) and (not iRST);
+s_Inst(22) <= s_dummyInst(22) and (not iRST);
+s_Inst(21) <= s_dummyInst(21) and (not iRST);
+s_Inst(20) <= s_dummyInst(20) and (not iRST);
+s_Inst(19) <= s_dummyInst(19) and (not iRST);
+s_Inst(18) <= s_dummyInst(18) and (not iRST);
+s_Inst(17) <= s_dummyInst(17) and (not iRST);
+s_Inst(16) <= s_dummyInst(16) and (not iRST);
+s_Inst(15) <= s_dummyInst(15) and (not iRST);
+s_Inst(14) <= s_dummyInst(14) and (not iRST);
+s_Inst(13) <= s_dummyInst(13) and (not iRST);
+s_Inst(12) <= s_dummyInst(12) and (not iRST);
+s_Inst(11) <= s_dummyInst(11) and (not iRST);
+s_Inst(10) <= s_dummyInst(10) and (not iRST);
+s_Inst(9) <= s_dummyInst(9) and (not iRST);
+s_Inst(8) <= s_dummyInst(8) and (not iRST);
+s_Inst(7) <= s_dummyInst(7) and (not iRST);
+s_Inst(6) <= s_dummyInst(6) and (not iRST);
+s_Inst(5) <= s_dummyInst(5) and (not iRST);
+s_Inst(4) <= s_dummyInst(4) and (not iRST);
+s_Inst(3) <= s_dummyInst(3) and (not iRST);
+s_Inst(2) <= s_dummyInst(2) and (not iRST);
+s_Inst(1) <= s_dummyInst(1) and (not iRST);
+s_Inst(0) <= s_dummyInst(0) and (not iRST);
+
+
 
 IFID: iF_ID 
   port map(i_CLK => iCLK,
@@ -586,6 +626,9 @@ IDEX: ID_EX
        i_signExtend => s_SignExtendedD,
        o_signExtend => s_SignExtendedEx,
 
+	i_InstALU  => s_InstF,
+	o_InstALU  => s_InstEX,	
+
        i_rs => s_InstF(25 downto 21),
        o_rs => s_rsEx,
        i_rt => s_InstF(20 downto 16),
@@ -673,9 +716,9 @@ ALUI: proj1_alu
 		i_ALU1 => s_ALU1,
 		i_ALU2 => s_ALU2,
 		i_immediate => s_SignExtendedEx,
-		i_opcode => s_InstF(31 downto 26),
-		i_func => s_InstF(5 downto 0),
-		i_shift => s_InstF(10 downto 6),
+		i_opcode => s_InstEX(31 downto 26),
+		i_func => s_InstEX(5 downto 0),
+		i_shift => s_InstEX(10 downto 6),
 		i_ctl => s_ctl,
 		i_shift_typ => s_SoZextend,
 		o_carryout => s_carryout,
