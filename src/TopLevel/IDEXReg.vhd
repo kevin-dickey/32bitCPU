@@ -34,6 +34,9 @@ entity ID_EX is
        i_signExtend          : in std_logic_vector(31 downto 0);
        o_signExtend          : out std_logic_vector(31 downto 0);
 
+       i_InstALU          : in std_logic_vector(31 downto 0);
+       o_InstALU          : out std_logic_vector(31 downto 0);
+
        i_rs          : in std_logic_vector(4 downto 0);
        o_rs          : out std_logic_vector(4 downto 0);     
        i_rt          : in std_logic_vector(4 downto 0);
@@ -143,6 +146,13 @@ begin
 		i_WrEn	=> '1',
 		i_Reset	=> '0',
 		o_Out	=> o_Reg2);
+
+  RegSignExt: reg_N
+	port MAP(i_In	=> i_InstALU,
+		i_Clk	=> i_CLK,
+		i_WrEn	=> '1',
+		i_Reset	=> '0',
+		o_Out	=> o_InstALU);
 
   RegSignExt: reg_N
 	port MAP(i_In	=> i_signExtend,
