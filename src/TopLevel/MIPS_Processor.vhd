@@ -456,7 +456,7 @@ begin
 
 
     ShiftLeft2a: for i in 0 to 25 generate
-	s_jumpAddress(i+2) <= s_InstF(i);
+	s_jumpAddress(i+2) <= s_InstEX(i);	-- originally s_InstF, changing to EX made jal_1.s work, but not base tests... could be issue with base tests, nops, control, or something top-level
   end generate ShiftLeft2a;
 	s_jumpAddress(1) <= '0';
 	s_jumpAddress(0) <= '0';

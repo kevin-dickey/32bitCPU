@@ -25,7 +25,12 @@ main:
 #addi $s0, $zero, 0	# i = 0		# commented out b/c do it anyway on line 50
 addi $s1, $zero, 0	# j = 0		# was commented out b/c do it anyway on line 51, may want to keep
 addi $s2, $zero, 10	# N = 10 (num elements in array)
-la $s3, array		# s3 = array base address
+#la $s3, array		# s3 = array base address
+lui $at, 4097
+add $0, $0, $0
+add $0, $0, $0		# stall for at
+ori $s3, $at, 92
+
 
 readArrayElements:
 # condition here
@@ -53,6 +58,9 @@ bubbleSort:
 addi $s0, $zero, 0 	# i = 0 (resetting i after using it to enter array elements)
 addi $t0, $s2, -1	# t0 = N - 1		# should be ok, just make sure register file writes in first half and reads in second
 outerCond:
+add $0, $0, $0
+add $0, $0, $0
+add $0, $0, $0		# stall for branch to outercond to finish 
 addi $s1, $zero, 0	# j = 0
 nop	# stall for t0
 slt $t1, $s0, $t0	# t1 = 1 when i < N-1 	
@@ -63,6 +71,8 @@ nop
 nop	# stall for beq
 addi $t2, $zero, 0	# t2 acts as a boolean, t2 = 0 = false, see "https://www.geeksforgeeks.org/bubble-sort/" for more info on this part
 innerCond:
+add $0, $0, $0
+add $0, $0, $0		# stall for branch
 sub $t3, $t0, $s0	# t3 = N - 1 - i
 nop
 nop 	# stall for t3
@@ -101,8 +111,11 @@ nop	# stall for s6
 sw $t8, 0($s6)		# array[j] = contents from array[j+1]
 addi $t2, $zero, 1
 j innerCond
+add $0, $0, $0
 nop	# stall for jump
 check: # if no elements were swapped in inner loop, stop bubbleSort and print results. otherwise, back to outerCond
+add $0, $0, $0
+add $0, $0, $0
 slti $t2, $t2, 1	# t2 = 1 when t2<1 (t2=true (1) ==> t2=0, t2=false (0) ==> t2=1)
 addi $s0, $s0, 1	# i++
 nop	# stall for t2
@@ -112,10 +125,14 @@ nop
 #goes to printResults when nothing was swapped in innerCond
 
 printResults:
+add $0, $0, $0
+add $0, $0, $0
 addi $s0, $zero, 0	# i = 0
 nop
 nop	# stall for s0
 loop:
+add $0, $0, $0
+add $0, $0, $0	# stall for jump to finish
 slt $at, $s0, $s2	# at = 1 when i < N
 nop
 nop	#stall for at
@@ -135,8 +152,12 @@ addi $s3, $s3, 4
 
 addi $s0, $s0, 1	# i++
 j loop
+add $0, $0, $0
+add $0, $0, $0
 
 exit:
+add $0, $0, $0
+add $0, $0, $0	# stall for jump to finish
 li $v0, 10
 halt
 #syscall
