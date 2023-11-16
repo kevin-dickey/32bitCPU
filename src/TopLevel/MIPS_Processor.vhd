@@ -100,6 +100,7 @@ architecture structure of MIPS_Processor is
   signal s_HaltEx : std_logic;
   signal s_ctlEX : std_logic;
   signal s_jLinkEX : std_logic;
+  signal s_jRegEX : std_logic;
   signal s_rsEx : std_logic_vector(4 downto 0);
   signal s_rtEx : std_logic_vector(4 downto 0);
   signal s_rdEx : std_logic_vector(4 downto 0);
@@ -237,6 +238,8 @@ component ID_EX is
        o_ctlEx          : out std_logic;
        i_jLinkEX          : in std_logic;
        o_jLinkEX          : out std_logic;
+       i_jRegEX          : in std_logic;
+       o_jRegEX          : out std_logic;
 
        i_halt          : in std_logic;
        o_halt          : out std_logic;
@@ -466,7 +469,7 @@ begin
   end generate JumpPC;
 
     ShiftLeft2b: for i in 0 to 29 generate
-	s_ShiftedSignExtend(i+2) <= s_SignExtendedD(i);
+	s_ShiftedSignExtend(i+2) <= s_SignExtendedEx(i);
   end generate ShiftLeft2b;
 	s_ShiftedSignExtend(1) <= '0';
 	s_ShiftedSignExtend(0) <= '0';
@@ -477,7 +480,7 @@ ADDERI: RippleCarryAdder_N port map(
 	      i_carryIn      => '0',
 	      o_overflow      => s_overflow1,
 	      o_carryOut      => s_carryOut1,
-	      o_sum      => Temp1);	
+	      o_sum      => Temp1);	-- Temp1 is the branch address
 
     s_brAz <= s_zero and s_BranchEx;
 
@@ -495,7 +498,7 @@ ADDERI: RippleCarryAdder_N port map(
               o_O      => s_newPC); 
 
     jumpRegMux: mux2t1_N port map(
-              i_S      => s_jReg,      
+              i_S      => s_jRegEx,      
               i_D0     => s_newPC,  
               i_D1     => s_ALU1,  
               o_O      => s_PCi); 
@@ -642,6 +645,8 @@ IDEX: ID_EX
        o_ctlEx => s_ctlEX,
        i_jLinkEX => s_jLink,
        o_jLinkEX => s_jLinkEX,
+       i_jRegEX => s_jReg,
+       o_jRegEX => s_jRegEx,
 
 
        i_halt => s_HaltD,

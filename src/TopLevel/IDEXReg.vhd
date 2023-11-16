@@ -26,6 +26,8 @@ entity ID_EX is
        o_ctlEx          : out std_logic;
        i_jLinkEX          : in std_logic;
        o_jLinkEX          : out std_logic;
+       i_jRegEX          : in std_logic;
+       o_jRegEX          : out std_logic;
 
 
        i_halt          : in std_logic;
@@ -147,6 +149,13 @@ begin
 		i_WE	=> '1',
 		i_D	=> i_jLinkEX,
 		o_Q	=> o_jLinkEX);
+
+  dffEXjReg: dffg
+	port MAP(i_CLK	=> i_CLK,
+		i_RST	=> i_RST,
+		i_WE	=> '1',
+		i_D	=> i_jRegEX,
+		o_Q	=> o_jRegEX);
 
   dffHalt: dffg
 	port MAP(i_CLK	=> i_CLK,

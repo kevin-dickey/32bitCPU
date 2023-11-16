@@ -13,13 +13,13 @@ use IEEE.std_logic_1164.all;
 
 entity Forwarding_Unit is
 	port(i_IDEX_Rs		: in std_logic_vector(4 downto 0);	-- holds rs address from ID/EX pipeline register
-		 i_IDEX_Rt		: in std_logic_vector(4 downto 0);	-- holds rt address from ID/EX pipeline register
-		 i_EXMEM_Rd		: in std_logic_vector(4 downto 0);	-- holds destination register from EX/MEM pipeline register
-		 i_MEMWB_Rd		: in std_logic_vector(4 downto 0);	-- holds destination register from MEM/WB pipeline register
-		 i_EXMEM_RegWr	: in std_logic;
-		 i_MEMWB_RegWr	: in std_logic;
-		 o_ForwardA_ALU : out std_logic_vector(1 downto 0);	-- select line for mux going into the A input of the ALU
-		 o_ForwardB_ALU : out std_logic_vector(1 downto 0));	-- select line for mux going into the B input of the ALU
+	     i_IDEX_Rt		: in std_logic_vector(4 downto 0);	-- holds rt address from ID/EX pipeline register
+	     i_EXMEM_Rd		: in std_logic_vector(4 downto 0);	-- holds destination register from EX/MEM pipeline register
+	     i_MEMWB_Rd		: in std_logic_vector(4 downto 0);	-- holds destination register from MEM/WB pipeline register
+	     i_EXMEM_RegWr	: in std_logic;
+	     i_MEMWB_RegWr	: in std_logic;
+	     o_ForwardA_ALU 	: out std_logic_vector(1 downto 0);	-- select line for mux going into the A input of the ALU
+	     o_ForwardB_ALU 	: out std_logic_vector(1 downto 0));	-- select line for mux going into the B input of the ALU
 
 -- Forwarding select line key (o_ForwardA/B_ALU)
 -- 00 : source=ID/EX  : ALU operand comes from register file
