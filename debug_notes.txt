@@ -1,0 +1,2 @@
+sw instructions (and lw_5.s) need fixing
+control flow need fixing (hazard detection)

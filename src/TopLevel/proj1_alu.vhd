@@ -17,6 +17,10 @@ entity proj1_alu is
 		i_shift		: in std_logic_vector(4 downto 0);
 		i_ctl		: in std_logic;
 		i_shift_typ	: in std_logic;
+	--	i_forwardB_sel	: in std_logic_vector(1 downto 0);
+	--	i_forwardA_sel	: in std_logic_vector(1 downto 0);
+	--	i_forwardB_alu	: in std_logic_vector(31 downto 0);
+	--	i_forwardB_wb	: in std_logic_vector(31 downto 0);
 		o_carryout	: out std_logic;
 		o_overflow	: out std_logic;
 		o_zero		: out std_logic;
@@ -64,25 +68,52 @@ architecture mixed of proj1_alu is
 --		     o_F : out std_logic);
 --	end component;
 
-signal s_B :std_logic_vector(31 downto 0);
+signal s_B : std_logic_vector(31 downto 0);
+signal s_A : std_logic_vector(31 downto 0);
 signal s_add_sub :std_logic_vector(31 downto 0);
 signal s_barrel :std_logic_vector(31 downto 0);
 signal s_cOut : std_logic;
 signal s_overflow : std_logic;
 signal s_zero	: std_logic;
 signal s_zeroNot : std_logic;
+--signal s_forward1 : std_logic_vector(31 downto 0);
+--signal s_forward2 : std_logic_vector(31 downto 0);
 
 
 begin
-q0 :  mux2t1_N	--between immediate and reg value
-port MAP (i_S	=> i_ALUSrc,
-	i_D0	=> i_ALU2,
-	i_D1	=> i_immediate,
-	o_O	=> s_B);
+--chooseImmOrReg :  mux2t1_N	--between immediate and reg value
+--port MAP (i_S	=> i_ALUSrc,
+--	i_D0	=> i_ALU2,
+--	i_D1	=> i_immediate,
+--	o_O	=> s_forward1);
+
+--chooseForwardingB_1 :  mux2t1_N	
+--port MAP (i_S	=> i_forwardB_sel(0),
+--	  i_D0	=> s_forward1,
+--	  i_D1	=> i_forwardB_wb,
+--	  o_O	=> s_forward2);
+
+--chooseForwardingB_2 :  mux2t1_N	
+--port MAP (i_S	=> i_forwardB_sel(1),
+--	  i_D0	=> s_forward2,
+--	  i_D1	=> i_forwardB_alu,
+--	  o_O	=> s_B);
+
+--chooseForwardingA_1 :  mux2t1_N	
+--port MAP (i_S	=> i_forwardA_sel(0),
+--	  i_D0	=> i_ALU1,
+--	  i_D1	=> i_forwardB_wb,
+--	  o_O	=> s_forward2);
+
+--chooseForwardingA_2 :  mux2t1_N	
+--port MAP (i_S	=> i_forwardA_sel(1),
+--	  i_D0	=> s_forward2,
+--	  i_D1	=> i_forwardB_alu,
+--	  o_O	=> s_A);
 
 q1: AdderSubtractor_N
-port MAP( i_A	=> 	i_ALU1,
-	i_B		=> s_B,
+port MAP( i_A		=> i_ALU1,
+	i_B		=> i_ALU2,
 	i_nAdd_Sub	=> i_ctl,
 	o_Sums		=> s_add_sub,
 	o_Carry_Out	=> open,
@@ -95,7 +126,7 @@ port MAP(i_Data		=> i_ALU2,
        i_shamt		=> i_shift,
        i_shift_dir	=> i_ctl,
        i_shift_typ	=> i_shift_typ,
-       o_Output	=> s_barrel);
+       o_Output		=> s_barrel);
 
 ntgt: invg
 port MAP(i_A	=> s_zero,
@@ -192,12 +223,12 @@ when "001001" => --addiu
 
 when "001100" =>	--andi
 	for i in 0 to 31 loop
-	o_ALU(i) <= i_ALU1(i) and i_immediate(i);
+	o_ALU(i) <= i_ALU1(i) and i_ALU2(i);
 	end loop;
 	o_if <= '0';
 	o_overflow <= '0';
 when "001111" =>	--lui
-	o_ALU <= i_immediate(15 downto 0)&"0000000000000000";
+	o_ALU <= i_ALU2(15 downto 0)&"0000000000000000";
 	o_if <= '0';
 	o_overflow <= '0';
 when "100011" =>	--lw
@@ -206,12 +237,12 @@ when "100011" =>	--lw
 	o_overflow <= '0';
 when "001110" => 	--xori
 	for i in 0 to 31 loop
-	o_ALU(i) <= i_ALU1(i) xor i_immediate(i);
+	o_ALU(i) <= i_ALU1(i) xor i_ALU2(i);
 	end loop;
 	o_overflow <= '0';
 when "001101" => 	--ori
 	for i in 0 to 31 loop
-	o_ALU(i) <= i_ALU1(i) or i_immediate(i);
+	o_ALU(i) <= i_ALU1(i) or i_ALU2(i);
 	end loop;
 	o_if <= '0';
 	o_overflow <= '0';

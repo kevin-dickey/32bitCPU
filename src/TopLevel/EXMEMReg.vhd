@@ -15,6 +15,8 @@ entity EX_MEM is
        o_halt          : out std_logic;
        i_jLinkWB          : in std_logic;
        o_jLinkWB          : out std_logic;
+       i_OverflowWB          : in std_logic;
+       o_OverflowWB          : out std_logic;
 
        i_PCWB          : in std_logic_vector(31 downto 0);
        o_PCWB          : out std_logic_vector(31 downto 0);
@@ -86,6 +88,13 @@ begin
 		i_WE	=> '1',
 		i_D	=> i_jLinkWB,
 		o_Q	=> o_jLinkWB);
+
+  dffOverflowWB: dffg
+	port MAP(i_CLK	=> i_CLK,
+		i_RST	=> i_RST,
+		i_WE	=> '1',
+		i_D	=> i_OverflowWB,
+		o_Q	=> o_OverflowWB);
 
   dmemReg: reg_N
 	port MAP(i_In	=> i_dmem,
