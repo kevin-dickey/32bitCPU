@@ -5,7 +5,6 @@ use IEEE.std_logic_1164.all;
 entity MIPS_pc is
   port(i_CLK        : in std_logic;     -- Clock input
        i_RST        : in std_logic;     -- Reset input
-       i_PC_stall   : in std_logic;
        i_D          : in std_logic_vector(31 downto 0);     -- Data value input
        o_Q          : out std_logic_vector(31 downto 0));   -- Data value output
 end MIPS_pc;
@@ -36,7 +35,7 @@ with i_RST select
   PC: reg_N
 	port MAP(i_In	=> s_Q,
 		i_Clk	=> i_CLK,
-		i_WrEn	=> i_PC_stall,
+		i_WrEn	=> '1',
 		i_Reset	=> '0',
 		o_Out	=> o_Q);
 

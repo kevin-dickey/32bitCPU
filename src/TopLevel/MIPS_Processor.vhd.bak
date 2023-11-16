@@ -600,7 +600,7 @@ hazard: hazard_detection
 		EX_MEM_MemtoReg	=> NA1,
 		rd		=> NA2,
 		rt		=> NA2,
-		EX_MEM_mux	=> NA2,	
+		EX_MEM_mux	=> NA1,	
 		i_opcode	=> NA3,
 		i_func		=> NA3,
 		ID_EX		=> NA4,
