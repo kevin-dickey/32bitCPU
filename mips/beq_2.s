@@ -8,19 +8,11 @@
 main:
 addi $t0, $0, 0x0000 #set $t0 as a 0 value
 lui $t1, 0x7fff #set $t1 as a extreamly big value.
-#nop
-#nop
 addi $t1, $t1, 0xffff
-#nop
-#nop
 
 beq $t0, $t1, branch #see if the 0 values $t0 and the extreamly big value $t1 will result in a branch.
-#nop
-#nop
 addi $t2, $0, 2 #if beq works correctly, this will run
 addi $t3, $0, 3 #if beq works correctly, this will run
 branch:
     # Exit program
-    nop
-    nop
     halt
