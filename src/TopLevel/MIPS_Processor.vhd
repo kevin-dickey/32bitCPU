@@ -667,9 +667,9 @@ s_Inst(0) <= s_dummyInst(0) and (not iRST);
 --		o_control_hazard => NA1);
 
 hazard: hazard_unit
-	port map(jr => s_jReg,
-		branch => s_Branch,
-		jump => s_Jump,
+	port map(jr => s_jRegEx,
+		branch => s_BranchEx,
+		jump => s_JumpEx,
 		ID_EX_MemtoReg => s_MemReadEx,
 		ID_EX_RegDst => s_RegWrD,
 		EX_MEM_MemtoReg => s_MemtoRegWB,
@@ -678,7 +678,7 @@ hazard: hazard_unit
 		EX_MEM_RegWB => s_RegWr,
 		EX_MEM_mux => s_InstM,
 		ID_EX_Instr => s_InstF,
-		EX_MEM_Instr => s_PCM, --prob wrong but idk
+		EX_MEM_Instr => s_InstEx, --prob wrong but idk
 		Instr => s_NextInstAddr,
 		ID_EX_stall => s_ID_EX_stall,
 		ID_EX_flush => s_ID_EX_flush,

@@ -5,7 +5,7 @@ entity hazard_unit is
 	port(jr, branch, jump, ID_EX_MemtoReg, ID_EX_RegDst, EX_MEM_MemtoReg, EX_MEM_RegDst, EX_MEM_RegDstWB, EX_MEM_RegWB	
 		: in std_logic;
 	EX_MEM_mux	
-		: in std_logic_vector(5 downto 0);
+		: in std_logic_vector(4 downto 0);
 	ID_EX_Instr, EX_MEM_Instr, Instr
 		: in std_logic_vector (31 downto 0);
 	ID_EX_stall, ID_EX_flush, IF_ID_flush, IF_ID_stall, PC_stall, o_control_hazard
@@ -17,7 +17,7 @@ begin
    process (Instr, EX_MEM_MemtoReg, ID_EX_RegDst, ID_EX_Instr, EX_MEM_Instr, EX_MEM_RegDstWB, EX_MEM_RegWB, jump, branch, jr)
     begin
         if (jump = '1' or branch = '1' or jr = '1') then
-		PC_stall <= '1';
+		PC_stall <= '0';
 		ID_EX_stall <= '1';
 		ID_EX_flush <= '0';
 		IF_ID_stall <= '1';
@@ -49,7 +49,7 @@ begin
 		IF_ID_flush <= '1';
 
         elsif (branch = '1') then
-          	PC_stall <= '1';
+          	PC_stall <= '0';
 		ID_EX_stall <= '1';
 		ID_EX_flush <= '0';
 		IF_ID_stall <= '1';
