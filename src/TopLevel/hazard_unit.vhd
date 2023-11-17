@@ -2,11 +2,9 @@ library IEEE;
 use IEEE.std_logic_1164.all;
 
 entity hazard_unit is
-	port(jr, branch, jump, ID_EX_MemtoReg, ID_EX_RegDst, EX_MEM_MemtoReg, EX_MEM_RegDst	
+	port(jr, branch, jump, ID_EX_MemtoReg, ID_EX_RegDst, EX_MEM_MemtoReg, EX_MEM_RegDst, EX_MEM_RegDstWB, EX_MEM_RegWB	
 		: in std_logic;
-	EX_MEM_mux
-		: in std_logic_vector (4 downto 0);
-	i_opcode, i_func		
+	EX_MEM_mux	
 		: in std_logic_vector(5 downto 0);
 	ID_EX_Instr, EX_MEM_Instr, Instr
 		: in std_logic_vector (31 downto 0);
@@ -18,7 +16,7 @@ architecture mixed of hazard_unit is
 begin
    process (Instr, EX_MEM_MemtoReg, ID_EX_RegDst, ID_EX_Instr, EX_MEM_Instr, EX_MEM_RegDstWB, EX_MEM_RegWB, jump, branch, jr)
     begin
-        if (jump = '1' or branch = '1') then
+        if (jump = '1' or branch = '1' or jr = '1') then
 		PC_stall <= '1';
 		ID_EX_stall <= '1';
 		ID_EX_flush <= '0';
