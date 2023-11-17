@@ -20,6 +20,8 @@ entity MEM_WB is
        o_halt          : out std_logic;
        i_jLinkM          : in std_logic;
        o_jLinkM          : out std_logic;
+       i_OverflowM          : in std_logic;
+       o_OverflowM          : out std_logic;
 
        i_PCM          : in std_logic_vector(31 downto 0);
        o_PCM          : out std_logic_vector(31 downto 0);
@@ -106,6 +108,13 @@ begin
 		i_WE	=> '1',
 		i_D	=> i_jLinkM,
 		o_Q	=> o_jLinkM);
+
+  dffOverEX: dffg
+	port MAP(i_CLK	=> i_CLK,
+		i_RST	=> i_RST,
+		i_WE	=> '1',
+		i_D	=> i_OverflowM,
+		o_Q	=> o_OverflowM);
 
   RegPCWB: reg_N
 	port MAP(i_In	=> i_PCM,

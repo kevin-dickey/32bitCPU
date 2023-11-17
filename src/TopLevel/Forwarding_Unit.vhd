@@ -62,11 +62,11 @@ architecture mixed of Forwarding_Unit is
 		--		ForwardB = 11
 
 		-- forwarding from EX/MEM to ALU input B
-		if ((i_EXMEM_RegWr = '1') and (i_EXMEM_Rd /= "00000") and (i_EXMEM_Rd = i_IDEX_Rs)) then
+		if ((i_EXMEM_RegWr = '1') and (i_EXMEM_Rd /= "00000") and (i_EXMEM_Rd = i_IDEX_Rt)) then
 			s_Forward_B <= "10";
 
 		-- forwarding from MEM/WB to ALU input B
-		elsif ((i_MEMWB_RegWr = '1') and (i_MEMWB_Rd /= "00000") and (i_MEMWB_Rd = i_IDEX_Rs)) then
+		elsif ((i_MEMWB_RegWr = '1') and (i_MEMWB_Rd /= "00000") and (i_MEMWB_Rd = i_IDEX_Rt)) then
 			s_Forward_B <= "01";
 		else
 			s_Forward_B <= "00";
