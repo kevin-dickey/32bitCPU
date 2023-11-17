@@ -16,7 +16,7 @@ end hazard_unit;
 
 architecture mixed of hazard_unit is
 begin
-   process (i_Instr, i_Instr_IDEX, i_Instr_EXMEM, i_Instr_MEMWB, i_RegWr_IDEX, i_RegWr_EXMEM, i_RegWr_MEMWB, i_Jump_IDEX, i_BranchTaken_IDEX)
+   process (Instr, EX_MEM_MemtoReg, ID_EX_RegDst, ID_EX_Instr, EX_MEM_Instr, EX_MEM_RegDstWB, EX_MEM_RegWB, jump, branch, jr)
     begin
         if (jump = '1' or branch = '1') then
 		PC_stall <= '1';
