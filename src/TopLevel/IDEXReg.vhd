@@ -29,6 +29,9 @@ entity ID_EX is
        i_jRegEX          : in std_logic;
        o_jRegEX          : out std_logic;
 
+	i_SoZEx	: in std_logic;
+	o_SoZEx : out std_logic;
+
 
        i_halt          : in std_logic;
        o_halt          : out std_logic;
@@ -175,6 +178,13 @@ begin
 		i_WE	=> i_stall,
 		i_D	=> i_halt,
 		o_Q	=> o_halt);
+
+  dffSoZExtend: dffg
+	port MAP(i_CLK	=> i_CLK,
+		i_RST	=> i_RST,
+		i_WE	=> i_stall,
+		i_D	=> i_SoZEx,
+		o_Q	=> o_SoZEx);
 
   Reg1Reg: reg_N
 	port MAP(i_In	=> i_Reg1,

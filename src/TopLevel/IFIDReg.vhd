@@ -8,7 +8,8 @@ entity iF_ID is
        i_PCP4          : in std_logic_vector(31 downto 0);     -- Data value input
        o_PCP4          : out std_logic_vector(31 downto 0);
        i_imem          : in std_logic_vector(31 downto 0);
-       o_imem          : out std_logic_vector(31 downto 0));
+       o_imem          : out std_logic_vector(31 downto 0);
+       i_stall		: in std_logic);
 end iF_ID;
 
 -- architecture
@@ -20,8 +21,7 @@ architecture mixed of iF_ID is
 		 i_Clk		: in std_logic;								
 	 	 i_WrEn		: in std_logic;								
 		 i_Reset	: in std_logic;								
-		 o_Out		: out std_logic_vector(N-1 downto 0);
-		 i_stall	: in std_logic);		-- N-bit output
+		 o_Out		: out std_logic_vector(N-1 downto 0));
   end component;
 
   signal s_RST_data : std_logic_vector(31 downto 0) := x"00400000";
@@ -39,14 +39,14 @@ begin
 	port MAP(i_In	=> i_PCP4,
 		i_Clk	=> i_CLK,
 		i_WrEn	=> i_stall,
-		i_Reset	=> '0',
+		i_Reset	=> i_RST,
 		o_Out	=> o_PCP4);
 
   ImemReg: reg_N
 	port MAP(i_In	=> i_imem,
 		i_Clk	=> i_CLK,
 		i_WrEn	=> i_stall,
-		i_Reset	=> '0',
+		i_Reset	=> i_RST,
 		o_Out	=> o_imem);
 
 

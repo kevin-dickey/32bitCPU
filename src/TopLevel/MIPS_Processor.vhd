@@ -89,7 +89,9 @@ architecture structure of MIPS_Processor is
   signal s_BranchD : std_logic;
   signal s_JumpD : std_logic;
   signal s_ALUSrcD : std_logic;
-
+  signal s_jLinkD : std_logic;
+  signal s_jRegD : std_logic;
+  signal s_ctlD : std_logic;
   --Ex control signals
   signal s_BranchEx : std_logic := '0';
   signal s_JumpEx : std_logic := '0';
@@ -108,6 +110,7 @@ architecture structure of MIPS_Processor is
   signal s_rdEx : std_logic_vector(4 downto 0);
   signal s_SignExtendedEx : std_logic_vector(N-1 downto 0);
   signal s_PCEX : std_logic_vector(N-1 downto 0);
+  signal s_SoZextendEx : std_logic;
 
   --M control signals
   signal s_MemtoRegM : std_logic;
@@ -232,7 +235,8 @@ component iF_ID is
        i_PCP4          : in std_logic_vector(31 downto 0);     -- Data value input
        o_PCP4          : out std_logic_vector(31 downto 0);
        i_imem          : in std_logic_vector(31 downto 0);
-       o_imem          : out std_logic_vector(31 downto 0));
+       o_imem          : out std_logic_vector(31 downto 0);
+       i_stall	       : in std_logic);
 end component;
 
 
@@ -268,6 +272,9 @@ component ID_EX is
 
        i_halt          : in std_logic;
        o_halt          : out std_logic;
+
+	i_SoZEx		: in std_logic;
+	o_SoZEx 	: out std_logic;
 
        i_Reg1          : in std_logic_vector(31 downto 0);
        o_Reg1          : out std_logic_vector(31 downto 0);
@@ -644,7 +651,7 @@ hazard: hazard_detection
 		ID_EX_stall	=> s_ID_EX_stall,
 		ID_EX_flush	=> s_ID_EX_flush,
 		IF_ID_flush	=> s_IF_ID_flush,
-		IF_ID_stall	=> s_IF_ID_stall,
+		IF_ID_stall	=> s_IF_ID_stall,	-- bro is an output
 		PC_stall	=> s_pc_stall,
 		o_control_hazard => NA1);
 
@@ -655,7 +662,8 @@ IFID: iF_ID
        i_PCP4 => s_PC4,
        o_PCP4 => s_PC,
        i_imem => s_Inst,
-       o_imem => s_InstF);
+       o_imem => s_InstF,
+       i_stall => s_IF_ID_stall);
 
     HazMemtoRegMUX: mux2t1
 	port map(
@@ -707,6 +715,27 @@ IFID: iF_ID
               i_D1     => s_ALUSrc, 
               o_O      => s_ALUSrcD); 
 
+    HazJLinkMUX: mux2t1
+	port map(
+              i_S      => s_ID_EX_flush,    
+              i_D0     => '0', 
+              i_D1     => s_jLink, 
+              o_O      => s_jLinkD); 
+
+    HazJRegMUX: mux2t1
+	port map(
+              i_S      => s_ID_EX_flush,    
+              i_D0     => '0', 
+              i_D1     => s_jReg, 
+              o_O      => s_jRegD); 
+
+    HazCtlMUX: mux2t1
+	port map(
+              i_S      => s_ID_EX_flush,    
+              i_D0     => '0', 
+              i_D1     => s_ctl, 
+              o_O      => s_ctlD); 
+
 IDEX: ID_EX
   port map(i_CLK => iCLK,
        i_RST => '0',
@@ -737,6 +766,9 @@ IDEX: ID_EX
 
        i_halt => s_HaltD,
        o_halt => s_HaltEx,
+
+	i_SoZEx	=> s_SoZextend,
+	o_SoZEx => s_SoZextendEx,
 
        i_Reg1 => s_ALU1D,
        o_Reg1 => s_ALU1,
@@ -895,7 +927,7 @@ ALUI: proj1_alu
 		i_func => s_InstEX(5 downto 0),
 		i_shift => s_InstEX(10 downto 6),
 		i_ctl => s_ctlEX,
-		i_shift_typ => s_SoZextend,
+		i_shift_typ => s_SoZextendEx,
 	--	i_forwardA_sel => s_ForwardA_ALU,
 	--	i_forwardB_sel => s_ForwardB_ALU,
 	--	i_forwardB_alu => s_DMemAddr,
