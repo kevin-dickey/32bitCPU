@@ -220,7 +220,8 @@ component iF_ID is
        i_PCP4          : in std_logic_vector(31 downto 0);     -- Data value input
        o_PCP4          : out std_logic_vector(31 downto 0);
        i_imem          : in std_logic_vector(31 downto 0);
-       o_imem          : out std_logic_vector(31 downto 0));
+       o_imem          : out std_logic_vector(31 downto 0);
+	i_stall		: in std_logic);
 end component;
 
 
@@ -600,7 +601,7 @@ hazard: hazard_detection
 		EX_MEM_MemtoReg	=> s_MemtoRegWB,
 		rd		=> s_rdEx,
 		rt		=> s_rtEx,
-		EX_MEM_mux	=> s_IF_ID_stall,	
+		EX_MEM_mux	=> s_InstM,	
 		i_opcode	=> NA3,
 		i_func		=> NA3,
 		ID_EX		=> s_SignExtendedEx,
@@ -619,7 +620,8 @@ IFID: iF_ID
        i_PCP4 => s_PC4,
        o_PCP4 => s_PC,
        i_imem => s_Inst,
-       o_imem => s_InstF);
+       o_imem => s_InstF,
+	i_stall => s_IF_ID_stall);
 
     HazMemtoRegMUX: mux2t1
 	port map(

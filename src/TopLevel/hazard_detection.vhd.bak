@@ -21,7 +21,7 @@ begin
 	ID_EX_stall <= '0' when	(((jr = '1') or (ID_EX_MemtoReg = '1')) and ((EX_MEM_mux = rt) or (EX_MEM_mux = rd)) and (EX_MEM_mux /= "00000"))
 				else '1';
 
-	ID_EX_flush <= '0' when ((EX_MEM_MemtoReg = '1') and (ID_EX_MemToReg = '1') and (ID_EX = EX_MEM))
+	ID_EX_flush <= '0' when ((EX_MEM_MemtoReg = '1') and (ID_EX(25 downto 21) = EX_MEM(20 downto 16)))
 				else '1';
 -- '0' when j, branch, or jr
 	IF_ID_flush <= '0' when ((jr = '1') or (branch = '1') or (jump = '1'))
