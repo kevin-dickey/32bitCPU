@@ -15,6 +15,7 @@ entity hazard_unit is
 end hazard_unit;
 
 architecture mixed of hazard_unit is
+begin
    process (i_Instr, i_Instr_IDEX, i_Instr_EXMEM, i_Instr_MEMWB, i_RegWr_IDEX, i_RegWr_EXMEM, i_RegWr_MEMWB, i_Jump_IDEX, i_BranchTaken_IDEX)
     begin
         if (jump = '1' or branch = '1') then
