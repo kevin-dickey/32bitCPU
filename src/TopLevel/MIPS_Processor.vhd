@@ -473,18 +473,31 @@ component signExtend is
 		  o_F			: out std_logic_vector(31 downto 0));
 end component;	
 
-component hazard_detection is
-	port(jr, branch, jump, ID_EX_MemtoReg, EX_MEM_MemtoReg	
-			: in std_logic;
-		rd, rt, EX_MEM_mux
-			: in std_logic_vector (4 downto 0);
-		i_opcode, i_func		
-			: in std_logic_vector(5 downto 0);
-		ID_EX, EX_MEM
-			: in std_logic_vector (31 downto 0);
-		ID_EX_stall, ID_EX_flush, IF_ID_flush, IF_ID_stall, PC_stall, o_control_hazard
-			: out std_logic);
-end component;
+--component hazard_detection is
+--	port(jr, branch, jump, ID_EX_MemtoReg, EX_MEM_MemtoReg	
+--			: in std_logic;
+--		rd, rt, EX_MEM_mux
+--			: in std_logic_vector (4 downto 0);
+--		i_opcode, i_func		
+--			: in std_logic_vector(5 downto 0);
+--		ID_EX, EX_MEM
+--			: in std_logic_vector (31 downto 0);
+--		ID_EX_stall, ID_EX_flush, IF_ID_flush, IF_ID_stall, PC_stall, --o_control_hazard
+--			: out std_logic);
+--end component;
+
+entity hazard_unit is
+	port(jr, branch, jump, ID_EX_MemtoReg, ID_EX_RegDst, EX_MEM_MemtoReg, EX_MEM_RegDst	
+		: in std_logic;
+	EX_MEM_mux
+		: in std_logic_vector (4 downto 0);
+	i_opcode, i_func		
+		: in std_logic_vector(5 downto 0);
+	ID_EX_Instr, EX_MEM
+		: in std_logic_vector (31 downto 0);
+	ID_EX_stall, ID_EX_flush, IF_ID_flush, IF_ID_stall, PC_stall, o_control_hazard
+		: out std_logic);
+end hazard_unit;
 
 
 
@@ -635,25 +648,42 @@ s_Inst(2) <= s_dummyInst(2) and (not iRST);
 s_Inst(1) <= s_dummyInst(1) and (not iRST);
 s_Inst(0) <= s_dummyInst(0) and (not iRST);
 
-hazard: hazard_detection
-   port MAP(jr			=> s_jReg,
- 		branch		=> s_Branch,
-		jump		=> s_Jump,
-		ID_EX_MemtoReg	=> s_MemReadEX,
-		EX_MEM_MemtoReg	=> s_MemtoRegWB,
-		rd		=> s_rdEx,
-		rt		=> s_rtEx,
-		EX_MEM_mux	=> s_InstM,	
-		i_opcode	=> NA3,
-		i_func		=> NA3,
-		ID_EX		=> s_SignExtendedEx,
-		EX_MEM		=> s_ALUWB,	
-		ID_EX_stall	=> s_ID_EX_stall,
-		ID_EX_flush	=> s_ID_EX_flush,
-		IF_ID_flush	=> s_IF_ID_flush,
-		IF_ID_stall	=> s_IF_ID_stall,	-- bro is an output
-		PC_stall	=> s_pc_stall,
-		o_control_hazard => NA1);
+--hazard: hazard_detection
+ --  port MAP(jr			=> s_jReg,
+ --		branch		=> s_Branch,
+--		jump		=> s_Jump,
+--		ID_EX_MemtoReg	=> s_MemReadEX,
+--		EX_MEM_MemtoReg	=> s_MemtoRegWB,
+--		rd		=> s_rdEx,
+--		rt		=> s_rtEx,
+--		EX_MEM_mux	=> s_InstM,	
+--		i_opcode	=> NA3,
+--		i_func		=> NA3,
+--		ID_EX		=> s_SignExtendedEx,
+--		EX_MEM		=> s_ALUWB,	
+--		ID_EX_stall	=> s_ID_EX_stall,
+--		ID_EX_flush	=> s_ID_EX_flush,
+--		IF_ID_flush	=> s_IF_ID_flush,
+--		IF_ID_stall	=> s_IF_ID_stall,	-- bro is an output
+--		PC_stall	=> s_pc_stall,
+--		o_control_hazard => NA1);
+
+hazard: hazard_unit
+	port map(jr
+		branch => s_Branch,
+		jump => s_Jump,
+		ID_EX_MemtoReg => s_MemReadEx,
+		ID_EX_RegDst => s_RegWrD,
+		EX_MEM_MemtoReg s_MemtoRegWB
+		EX_MEM_RegDst => s_DMemOutWB,
+		EX_MEM_mux => => s_InstM,
+		ID_EX_Instr => s_SignExtendedEx,
+		EX_MEM => s_ALUWB,
+		ID_EX_stall => s_ID_EX_stall,
+		ID_EX_flush => s_ID_EX_flush,
+		IF_ID_flush => s_IF_ID_flush,
+		IF_ID_stall => s_IF_ID_stall,
+		PC_stall => s_pc_stall);
 
 
 IFID: iF_ID 
