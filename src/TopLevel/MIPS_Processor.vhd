@@ -493,7 +493,7 @@ entity hazard_unit is
 		: in std_logic_vector (4 downto 0);
 	i_opcode, i_func		
 		: in std_logic_vector(5 downto 0);
-	ID_EX_Instr, EX_MEM
+	ID_EX_Instr, EX_MEM_Instr, Instr
 		: in std_logic_vector (31 downto 0);
 	ID_EX_stall, ID_EX_flush, IF_ID_flush, IF_ID_stall, PC_stall, o_control_hazard
 		: out std_logic);
@@ -669,7 +669,7 @@ s_Inst(0) <= s_dummyInst(0) and (not iRST);
 --		o_control_hazard => NA1);
 
 hazard: hazard_unit
-	port map(jr
+	port map(jr => s_jReg
 		branch => s_Branch,
 		jump => s_Jump,
 		ID_EX_MemtoReg => s_MemReadEx,
@@ -677,8 +677,9 @@ hazard: hazard_unit
 		EX_MEM_MemtoReg s_MemtoRegWB
 		EX_MEM_RegDst => s_DMemOutWB,
 		EX_MEM_mux => => s_InstM,
-		ID_EX_Instr => s_SignExtendedEx,
-		EX_MEM => s_ALUWB,
+		ID_EX_Instr => s_InstF,
+		EX_MEM_Instr => s_InstM,
+		Instr => s_NextInstAddr,
 		ID_EX_stall => s_ID_EX_stall,
 		ID_EX_flush => s_ID_EX_flush,
 		IF_ID_flush => s_IF_ID_flush,

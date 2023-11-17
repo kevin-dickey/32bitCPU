@@ -4,11 +4,11 @@ use IEEE.std_logic_1164.all;
 entity hazard_unit is
 	port(jr, branch, jump, ID_EX_MemtoReg, ID_EX_RegDst, EX_MEM_MemtoReg, EX_MEM_RegDst	
 		: in std_logic;
-	rd, rt, EX_MEM_mux
+	EX_MEM_mux
 		: in std_logic_vector (4 downto 0);
 	i_opcode, i_func		
 		: in std_logic_vector(5 downto 0);
-	ID_EX_Instr, EX_MEM
+	ID_EX_Instr, EX_MEM_Instr, Instr
 		: in std_logic_vector (31 downto 0);
 	ID_EX_stall, ID_EX_flush, IF_ID_flush, IF_ID_stall, PC_stall, o_control_hazard
 		: out std_logic);
