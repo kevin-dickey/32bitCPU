@@ -89,7 +89,9 @@ architecture structure of MIPS_Processor is
   signal s_BranchD : std_logic;
   signal s_JumpD : std_logic;
   signal s_ALUSrcD : std_logic;
-
+  signal s_jLinkD : std_logic;
+  signal s_jRegD : std_logic;
+  signal s_ctlD : std_logic;
   --Ex control signals
   signal s_BranchEx : std_logic := '0';
   signal s_JumpEx : std_logic := '0';
@@ -102,11 +104,13 @@ architecture structure of MIPS_Processor is
   signal s_ctlEX : std_logic;
   signal s_jLinkEX : std_logic;
   signal s_jRegEX : std_logic;
+  signal s_OverflowEx : std_logic;
   signal s_rsEx : std_logic_vector(4 downto 0);
   signal s_rtEx : std_logic_vector(4 downto 0);
   signal s_rdEx : std_logic_vector(4 downto 0);
   signal s_SignExtendedEx : std_logic_vector(N-1 downto 0);
   signal s_PCEX : std_logic_vector(N-1 downto 0);
+  signal s_SoZextendEx : std_logic;
 
   --M control signals
   signal s_MemtoRegM : std_logic;
@@ -114,6 +118,7 @@ architecture structure of MIPS_Processor is
   signal s_memWriteM : std_logic;
   signal s_HaltM : std_logic;
   signal s_jLinkM : std_logic;
+  signal s_OverflowM : std_logic;
   signal s_ALUM : std_logic_vector(31 downto 0);
   signal s_WriteDataM : std_logic_vector(31 downto 0);
   signal s_InstM : std_logic_vector(4 downto 0);
@@ -165,6 +170,16 @@ architecture structure of MIPS_Processor is
   --Data Memory signals
   signal s_DataMem : std_logic_vector(N-1 downto 0);
  -- signal s_WriteData : std_logic_vector(N-1 downto 0);
+
+  -- Forwarding signals
+  signal s_ForwardA_ALU : std_logic_vector(1 downto 0);
+  signal s_ForwardB_ALU : std_logic_vector(1 downto 0);
+  signal s_A : std_logic_vector(31 downto 0);
+  signal s_B : std_logic_vector(31 downto 0);
+  signal s_forward1 : std_logic_vector(31 downto 0);
+  signal s_forward2 : std_logic_vector(31 downto 0);
+  signal s_forward3 : std_logic_vector(31 downto 0);
+
 
  --Not used Adder signals
   signal s_overflow1 : std_logic;
@@ -221,7 +236,7 @@ component iF_ID is
        o_PCP4          : out std_logic_vector(31 downto 0);
        i_imem          : in std_logic_vector(31 downto 0);
        o_imem          : out std_logic_vector(31 downto 0);
-	i_stall		: in std_logic);
+       i_stall	       : in std_logic);
 end component;
 
 
@@ -257,6 +272,9 @@ component ID_EX is
 
        i_halt          : in std_logic;
        o_halt          : out std_logic;
+
+	i_SoZEx		: in std_logic;
+	o_SoZEx 	: out std_logic;
 
        i_Reg1          : in std_logic_vector(31 downto 0);
        o_Reg1          : out std_logic_vector(31 downto 0);
@@ -302,6 +320,9 @@ component MEM_WB is
        o_halt          : out std_logic;
        i_jLinkM          : in std_logic;
        o_jLinkM          : out std_logic;
+       i_OverflowM          : in std_logic;
+       o_OverflowM          : out std_logic;
+
 
        i_PCM          : in std_logic_vector(31 downto 0);
        o_PCM          : out std_logic_vector(31 downto 0);
@@ -329,6 +350,8 @@ component EX_MEM is
        o_halt          : out std_logic;
        i_jLinkWB          : in std_logic;
        o_jLinkWB          : out std_logic;
+       i_OverflowWB          : in std_logic;
+       o_OverflowWB          : out std_logic;
 
        i_PCWB          : in std_logic_vector(31 downto 0);
        o_PCWB          : out std_logic_vector(31 downto 0);
@@ -358,6 +381,21 @@ component MIPS_pc is
 end component;
 
 
+component Forwarding_Unit is
+	port(i_IDEX_Rs		: in std_logic_vector(4 downto 0);	-- holds rs address from ID/EX pipeline register
+	     i_IDEX_Rt		: in std_logic_vector(4 downto 0);	-- holds rt address from ID/EX pipeline register
+	     i_EXMEM_Rd		: in std_logic_vector(4 downto 0);	-- holds destination register from EX/MEM pipeline register
+	     i_MEMWB_Rd		: in std_logic_vector(4 downto 0);	-- holds destination register from MEM/WB pipeline register
+	     i_EXMEM_RegWr	: in std_logic;
+	     i_MEMWB_RegWr	: in std_logic;
+	     o_ForwardA_ALU 	: out std_logic_vector(1 downto 0);	-- select line for mux going into the A input of the ALU
+	     o_ForwardB_ALU 	: out std_logic_vector(1 downto 0));	-- select line for mux going into the B input of the ALU
+
+	-- Forwarding select line key (o_ForwardA/B_ALU)
+	-- 00 : source=ID/EX  : ALU operand comes from register file
+	-- 01 : source=MEM/WB : ALU operand is forwarded from data memory (or an earlier ALU result)
+	-- 10 : source=EX/MEM : ALU operand is forwarded from the prior ALU result
+end component;
 
 
 component control is 
@@ -403,6 +441,10 @@ component proj1_alu is
 		i_shift		: in std_logic_vector(4 downto 0);
 		i_ctl		: in std_logic;
 		i_shift_typ	: in std_logic;
+	--	i_forwardA_sel	: in std_logic_vector(1 downto 0);
+	--	i_forwardB_sel	: in std_logic_vector(1 downto 0);
+	--	i_forwardB_alu	: in std_logic_vector(31 downto 0);
+	--	i_forwardB_wb	: in std_logic_vector(31 downto 0);
 		o_carryout	: out std_logic;
 		o_overflow	: out std_logic;
 		o_zero		: out std_logic;
@@ -431,17 +473,28 @@ component signExtend is
 		  o_F			: out std_logic_vector(31 downto 0));
 end component;	
 
-component hazard_detection is
-	port(jr, branch, jump, ID_EX_MemtoReg, EX_MEM_MemtoReg	
-			: in std_logic;
-		rd, rt, EX_MEM_mux
-			: in std_logic_vector (4 downto 0);
-		i_opcode, i_func		
-			: in std_logic_vector(5 downto 0);
-		ID_EX, EX_MEM
-			: in std_logic_vector (31 downto 0);
-		ID_EX_stall, ID_EX_flush, IF_ID_flush, IF_ID_stall, PC_stall, o_control_hazard
-			: out std_logic);
+--component hazard_detection is
+--	port(jr, branch, jump, ID_EX_MemtoReg, EX_MEM_MemtoReg	
+--			: in std_logic;
+--		rd, rt, EX_MEM_mux
+--			: in std_logic_vector (4 downto 0);
+--		i_opcode, i_func		
+--			: in std_logic_vector(5 downto 0);
+--		ID_EX, EX_MEM
+--			: in std_logic_vector (31 downto 0);
+--		ID_EX_stall, ID_EX_flush, IF_ID_flush, IF_ID_stall, PC_stall, --o_control_hazard
+--			: out std_logic);
+--end component;
+
+component hazard_unit is
+	port(jr, branch, jump, ID_EX_MemtoReg, ID_EX_RegDst, EX_MEM_MemtoReg, EX_MEM_RegDst, EX_MEM_RegDstWB, EX_MEM_RegWB	
+		: in std_logic;
+	EX_MEM_mux
+		: in std_logic_vector (4 downto 0);
+	ID_EX_Instr, EX_MEM_Instr, Instr
+		: in std_logic_vector (31 downto 0);
+	ID_EX_stall, ID_EX_flush, IF_ID_flush, IF_ID_stall, PC_stall, o_control_hazard
+		: out std_logic);
 end component;
 
 
@@ -593,25 +646,45 @@ s_Inst(2) <= s_dummyInst(2) and (not iRST);
 s_Inst(1) <= s_dummyInst(1) and (not iRST);
 s_Inst(0) <= s_dummyInst(0) and (not iRST);
 
-hazard: hazard_detection
-   port MAP(jr			=> s_jReg,
- 		branch		=> s_Branch,
-		jump		=> s_Jump,
-		ID_EX_MemtoReg	=> s_MemWriteEX,
-		EX_MEM_MemtoReg	=> s_MemtoRegWB,
-		rd		=> s_rdEx,
-		rt		=> s_rtEx,
-		EX_MEM_mux	=> s_InstM,	
-		i_opcode	=> NA3,
-		i_func		=> NA3,
-		ID_EX		=> s_SignExtendedEx,
-		EX_MEM		=> s_ALUWB,	
-		ID_EX_stall	=> s_ID_EX_stall,
-		ID_EX_flush	=> s_ID_EX_flush,
-		IF_ID_flush	=> s_IF_ID_flush,
-		IF_ID_stall	=> s_IF_ID_stall,
-		PC_stall	=> s_pc_stall,
-		o_control_hazard => NA1);
+--hazard: hazard_detection
+ --  port MAP(jr			=> s_jReg,
+ --		branch		=> s_Branch,
+--		jump		=> s_Jump,
+--		ID_EX_MemtoReg	=> s_MemReadEX,
+--		EX_MEM_MemtoReg	=> s_MemtoRegWB,
+--		rd		=> s_rdEx,
+--		rt		=> s_rtEx,
+--		EX_MEM_mux	=> s_InstM,	
+--		i_opcode	=> NA3,
+--		i_func		=> NA3,
+--		ID_EX		=> s_SignExtendedEx,
+--		EX_MEM		=> s_ALUWB,	
+--		ID_EX_stall	=> s_ID_EX_stall,
+--		ID_EX_flush	=> s_ID_EX_flush,
+--		IF_ID_flush	=> s_IF_ID_flush,
+--		IF_ID_stall	=> s_IF_ID_stall,	-- bro is an output
+--		PC_stall	=> s_pc_stall,
+--		o_control_hazard => NA1);
+
+hazard: hazard_unit
+	port map(jr => s_jReg,
+		branch => s_Branch,
+		jump => s_Jump,
+		ID_EX_MemtoReg => s_MemReadEx,
+		ID_EX_RegDst => s_RegWrD,
+		EX_MEM_MemtoReg => s_MemtoRegWB,
+		EX_MEM_RegDst => s_MemtoRegWB,
+		EX_MEM_RegDstWB => s_MemtoRegWB,
+		EX_MEM_RegWB => s_RegWr,
+		EX_MEM_mux => s_InstM,
+		ID_EX_Instr => s_InstF,
+		EX_MEM_Instr => s_PCM, --prob wrong but idk
+		Instr => s_NextInstAddr,
+		ID_EX_stall => s_ID_EX_stall,
+		ID_EX_flush => s_ID_EX_flush,
+		IF_ID_flush => s_IF_ID_flush,
+		IF_ID_stall => s_IF_ID_stall,
+		PC_stall => s_pc_stall);
 
 
 IFID: iF_ID 
@@ -621,7 +694,7 @@ IFID: iF_ID
        o_PCP4 => s_PC,
        i_imem => s_Inst,
        o_imem => s_InstF,
-	i_stall => s_IF_ID_stall);
+       i_stall => s_IF_ID_stall);
 
     HazMemtoRegMUX: mux2t1
 	port map(
@@ -673,6 +746,27 @@ IFID: iF_ID
               i_D1     => s_ALUSrc, 
               o_O      => s_ALUSrcD); 
 
+    HazJLinkMUX: mux2t1
+	port map(
+              i_S      => s_ID_EX_flush,    
+              i_D0     => '0', 
+              i_D1     => s_jLink, 
+              o_O      => s_jLinkD); 
+
+    HazJRegMUX: mux2t1
+	port map(
+              i_S      => s_ID_EX_flush,    
+              i_D0     => '0', 
+              i_D1     => s_jReg, 
+              o_O      => s_jRegD); 
+
+    HazCtlMUX: mux2t1
+	port map(
+              i_S      => s_ID_EX_flush,    
+              i_D0     => '0', 
+              i_D1     => s_ctl, 
+              o_O      => s_ctlD); 
+
 IDEX: ID_EX
   port map(i_CLK => iCLK,
        i_RST => '0',
@@ -704,6 +798,9 @@ IDEX: ID_EX
        i_halt => s_HaltD,
        o_halt => s_HaltEx,
 
+	i_SoZEx	=> s_SoZextend,
+	o_SoZEx => s_SoZextendEx,
+
        i_Reg1 => s_ALU1D,
        o_Reg1 => s_ALU1,
        i_Reg2 => s_ALU2D,
@@ -729,7 +826,6 @@ IDEX: ID_EX
 	i_stall => s_ID_EX_stall);
 
 
-
 EXMEM: EX_MEM
   port map(i_CLK => iCLK,
        i_RST => '0',
@@ -743,6 +839,8 @@ EXMEM: EX_MEM
        o_halt => s_Halt,
        i_jLinkWB => s_jLinkM,
        o_jLinkWB => s_jLinkWB,
+       i_OverflowWB => s_OverflowM,
+       o_OverflowWB => s_Ovfl,
 
        i_PCWB => s_PCM,
        o_PCWB => s_PCWB,
@@ -804,24 +902,74 @@ Registers: register_file
 	   o_Rd1 => s_ALU1D,
            o_Rd2 => s_ALU2D);
 
+forwarding: Forwarding_Unit		-- ex/mem and mem/wb pipeline register names are swapped
+	port map(i_IDEX_Rs	=> s_rsEx,
+	     i_IDEX_Rt		=> s_rtEx,
+	     i_EXMEM_Rd		=> s_InstM,
+	     i_MEMWB_Rd		=> s_RegWrAddr,
+	     i_EXMEM_RegWr	=> s_RegWriteM,
+	     i_MEMWB_RegWr	=> s_RegWr,
+	     o_ForwardA_ALU 	=> s_ForwardA_ALU,
+	     o_ForwardB_ALU 	=> s_ForwardB_ALU);
+
+chooseImmOrReg :  mux2t1_N	--between immediate and reg value
+port MAP (i_S	=> s_ALuSrcEx,
+	i_D0	=> s_forward2,
+	i_D1	=> s_SignExtendedEx,
+	o_O	=> s_B);
+
+-- Forwarding select line key (o_ForwardA/B_ALU)
+-- 00 : source=ID/EX  : ALU operand comes from register file
+-- 01 : source=MEM/WB : ALU operand is forwarded from data memory (or an earlier ALU result)
+-- 10 : source=EX/MEM : ALU operand is forwarded from the prior ALU result
+chooseForwardingB_1 :  mux2t1_N	
+port MAP (i_S	=> s_ForwardB_ALU(0),
+	  i_D0	=> s_ALU2,
+	  i_D1	=> s_RegWrData,
+	  o_O	=> s_forward1);
+
+chooseForwardingB_2 :  mux2t1_N	
+port MAP (i_S	=> s_ForwardB_ALU(1),
+	  i_D0	=> s_forward1,
+	  i_D1	=> s_DMemAddr,
+	  o_O	=> s_forward2);
+
+chooseForwardingA_1 :  mux2t1_N	
+port MAP (i_S	=> s_ForwardA_ALU(0),
+	  i_D0	=> s_ALU1,
+	  i_D1	=> s_RegWrData,
+	  o_O	=> s_forward3);
+
+chooseForwardingA_2 :  mux2t1_N	
+port MAP (i_S	=> s_ForwardA_ALU(1),
+	  i_D0	=> s_forward3,
+	  i_D1	=> s_DMemAddr,
+	  o_O	=> s_A);
+
 
 ALUI: proj1_alu
 	port map(i_RST => iRST,
 		i_CLK => iCLK,
 		i_ALUSrc => s_ALuSrcEx,
-		i_ALU1 => s_ALU1,
-		i_ALU2 => s_ALU2,
-		i_immediate => s_SignExtendedEx,
+		i_ALU1 => s_A,
+		i_ALU2 => s_B,
+		i_immediate => s_B,
 		i_opcode => s_InstEX(31 downto 26),
 		i_func => s_InstEX(5 downto 0),
 		i_shift => s_InstEX(10 downto 6),
 		i_ctl => s_ctlEX,
-		i_shift_typ => s_SoZextend,
+		i_shift_typ => s_SoZextendEx,
+	--	i_forwardA_sel => s_ForwardA_ALU,
+	--	i_forwardB_sel => s_ForwardB_ALU,
+	--	i_forwardB_alu => s_DMemAddr,
+	--	i_forwardB_wb => s_RegWrData,
 		o_carryout => s_carryout,
 		o_if => s_if,
-		o_overflow => s_Ovfl,
+		o_overflow => s_OverflowEx,
 		o_zero => s_zero,
 		o_ALU => s_ALU);
+
+
 
 oALUOut <= s_ALU;
 
@@ -846,6 +994,9 @@ MEMWB: MEM_WB
        o_halt => s_HaltM,
        i_jLinkM => s_jLinkEX,
        o_jLinkM => s_jLinkM,
+       i_OverflowM => s_OverflowEx,
+       o_OverflowM => s_OverflowM,
+
 
        i_PCM => s_PCEX,
        o_PCM => s_PCM,
@@ -879,4 +1030,5 @@ MEMWB: MEM_WB
 
 
 end structure;
+
 

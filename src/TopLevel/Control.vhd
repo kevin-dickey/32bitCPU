@@ -19,6 +19,7 @@ entity control is
 	o_Halt			   : out std_logic;
         jumpReg			   : out std_logic;
 	jumpLinky		   : out std_logic;
+	flushy			   : out std_logic;
 	
 --	LoR 	     		   : out std_logic; --logical or arithmatic 
 	SoZextend 	     		   : out std_logic;--sign or zero extend
@@ -36,6 +37,7 @@ begin
 	o_Halt <= '0';
         jumpReg <= '0';
 	jumpLinky <= '0';
+	flushy <= '0';
 	case(opcodeinstruction) is
     	when "000000" => --R format
 				SoZextend <= '0';
@@ -93,6 +95,7 @@ begin
 				branch <= '0';
 				jump <= '1';
 				jumpReg <= '1';
+				flushy <= '1';
 
 			when "100111" => --nor
 				RegDst <= '1';
@@ -255,6 +258,7 @@ begin
 			jump <= '0';
 			o_ctl <= '0';
 			SoZextend <= '0';
+			flushy <= '1';
 
     	when "001110" => --xori
 			RegDst <= '0';
@@ -301,6 +305,7 @@ begin
 			jump <= '0';
 			SoZextend <= '0';
 			o_ctl <= '0';
+			flushy <= '1';
 
     	when "000100" => --beq
 			RegDst <= '0';
@@ -312,6 +317,7 @@ begin
 			branch <= '1';
 			jump <= '0';
 			o_ctl <= '1';
+			flushy <= '1';
 
     	when "000101" => --bne
 			RegDst <= '0';
@@ -323,6 +329,7 @@ begin
 			branch <= '1';
 			jump <= '0';
 			o_ctl <= '1';
+			flushy <= '1';
 
     	when "000010" => --j
 			RegDst <= '0';
@@ -333,6 +340,7 @@ begin
 			MemWrite <= '0';
 			branch <= '0';
 			jump <= '1';
+			flushy <= '1';
 
     	when "000011" => --jal
 			RegDst <= '0';
@@ -344,6 +352,7 @@ begin
 			branch <= '0';
 			jump <= '1';
 			jumpLinky <= '1';
+			flushy <= '1';
 
     	when "010100" => --s_Halt
 			RegDst <= '0';
