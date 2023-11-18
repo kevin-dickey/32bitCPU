@@ -190,35 +190,35 @@ begin
 	port MAP(i_In	=> i_Reg1,
 		i_Clk	=> i_CLK,
 		i_WrEn	=> i_stall,
-		i_Reset	=> '0',
+		i_Reset	=> i_RST,
 		o_Out	=> o_Reg1);
 
   Reg2Reg: reg_N
 	port MAP(i_In	=> i_Reg2,
 		i_Clk	=> i_CLK,
-		i_WrEn	=> '1',
-		i_Reset	=> '0',
+		i_WrEn	=> i_stall,
+		i_Reset	=> i_RST,
 		o_Out	=> o_Reg2);
 
   RegInstruct: reg_N
 	port MAP(i_In	=> i_InstALU,
 		i_Clk	=> i_CLK,
 		i_WrEn	=> i_stall,
-		i_Reset	=> '0',
+		i_Reset	=> i_RST,
 		o_Out	=> o_InstALU);
 
   RegPCEX: reg_N
 	port MAP(i_In	=> i_PCEX,
 		i_Clk	=> i_CLK,
 		i_WrEn	=> i_stall,
-		i_Reset	=> '0',
+		i_Reset	=> i_RST,
 		o_Out	=> o_PCEX);
 
   RegSignExt: reg_N
 	port MAP(i_In	=> i_signExtend,
 		i_Clk	=> i_CLK,
 		i_WrEn	=> i_stall,
-		i_Reset	=> '0',
+		i_Reset	=> i_RST,
 		o_Out	=> o_signExtend);
 
   RegRd: reg_N
@@ -226,7 +226,7 @@ begin
 	port MAP(i_In	=> i_rd,
 		i_Clk	=> i_CLK,
 		i_WrEn	=> i_stall,
-		i_Reset	=> '0',
+		i_Reset	=> i_RST,
 		o_Out	=> o_rd);
 
   RegRs: reg_N
@@ -234,7 +234,7 @@ begin
 	port MAP(i_In	=> i_rs,
 		i_Clk	=> i_CLK,
 		i_WrEn	=> i_stall,
-		i_Reset	=> '0',
+		i_Reset	=> i_RST,
 		o_Out	=> o_rs);
 
   RegRt: reg_N
@@ -242,7 +242,7 @@ begin
 	port MAP(i_In	=> i_rt,
 		i_Clk	=> i_CLK,
 		i_WrEn	=> i_stall,
-		i_Reset	=> '0',
+		i_Reset	=> i_RST,
 		o_Out	=> o_rt);
 
 end architecture;
