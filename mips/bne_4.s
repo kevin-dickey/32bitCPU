@@ -33,6 +33,6 @@ exit:
 # Print output
 li $v0, 1
 addi $a0, $s1, 0
-syscall
+#syscall
 # Exit program
 halt

@@ -189,11 +189,13 @@ architecture mixed of MIPS_Processor is
   signal s_carryOut2 : std_logic;
 
  --For hazard detection
-  signal s_ID_EX_flush : std_logic;
-  signal s_ID_EX_stall : std_logic;
-  signal s_IF_ID_stall : std_logic;
-  signal s_IF_ID_flush : std_logic;
-  signal s_PC_stall	: std_logic;
+  signal s_ID_EX_flush : std_logic := '1';
+  signal s_ID_EX_flush_not : std_logic := '0'; -- flush regularly active low, this signal goes into pipeline regs as active high
+  signal s_ID_EX_stall : std_logic := '1';
+  signal s_IF_ID_stall : std_logic := '1';
+  signal s_IF_ID_flush : std_logic := '1';
+  signal s_IF_ID_flush_not : std_logic := '0';
+  signal s_PC_stall	: std_logic := '0';
   signal NA1		: std_logic;
   signal NA2		: std_logic_vector(4 downto 0);
   signal NA3		: std_logic_vector(5 downto 0);
@@ -323,7 +325,7 @@ component MEM_WB is
        o_jLinkM          : out std_logic;
        i_OverflowM          : in std_logic;
        o_OverflowM          : out std_logic;
-	i_stall			: in std_logic;
+	--i_stall			: in std_logic;
 
 
        i_PCM          : in std_logic_vector(31 downto 0);
@@ -489,8 +491,7 @@ end component;
 --end component;
 
 component hazard_unit is
-	port(jr, branch, jump, ID_EX_MemtoReg, ID_EX_RegDst, EX_MEM_MemtoReg, EX_MEM_RegDst, EX_MEM_RegDstWB, EX_MEM_RegWB	
-		: in std_logic;
+	port(jr, branch, jump, ID_EX_MemtoReg, ID_EX_RegDst, EX_MEM_MemtoReg, EX_MEM_RegDst, EX_MEM_RegDstWB, EX_MEM_RegWB, aluSrc		: in std_logic;
 	EX_MEM_mux, RegWrAddr, RegExAddr, RegDecAddr
 		: in std_logic_vector (4 downto 0);
 	ID_EX_Instr, EX_MEM_Instr, Instr
@@ -586,7 +587,7 @@ ADDERI: RippleCarryAdder_N port map(
     jumpRegMux: mux2t1_N port map(
               i_S      => s_jRegEx,      
               i_D0     => s_newPC,  
-              i_D1     => s_ALU1,  
+              i_D1     => s_A,  -- was s_ALU1
               o_O      => s_PCi); 
 
     pcLooperMux: mux2t1_N port map(
@@ -674,16 +675,22 @@ s_Inst(0) <= s_dummyInst(0) and (not iRST);
 --		PC_stall	=> s_pc_stall,
 --		o_control_hazard => NA1);
 
+s_IF_ID_flush_not <= not s_IF_ID_flush;
+s_ID_EX_flush_not <= not s_ID_EX_flush;
+
 hazard: hazard_unit
 	port map(jr => s_jRegEx,
 		branch => s_brAz,
 		jump => s_JumpEx,
+		aluSrc => s_ALUSrcD,
 		ID_EX_MemtoReg => s_MemReadEx,
 		ID_EX_RegDst => s_RegWrD,
-		EX_MEM_MemtoReg => s_MemtoRegEx, --IDEX
-		EX_MEM_RegDst => s_RegDst,  --EXMEM that one mux
-		EX_MEM_RegDstWB => s_RegDst, --
-		EX_MEM_RegWB => s_MemtoRegWB, --
+		EX_MEM_MemtoReg => s_MemtoRegEx, -- s_MemtoRegEx
+
+		EX_MEM_RegDst => s_RegDst,  -- dont use currently
+		EX_MEM_RegDstWB => s_RegDst, -- dont use currently
+
+		EX_MEM_RegWB => s_memWriteEx, -- was s_MemtoRegWB
 		RegWrAddr => s_RegWrAddr,
 		RegExAddr => s_rdEx,
 		RegDecAddr => s_RegWrAddrD,
@@ -700,7 +707,7 @@ hazard: hazard_unit
 
 IFID: iF_ID 
   port map(i_CLK => iCLK,
-       i_RST => '0',
+       i_RST => s_IF_ID_flush_not,
        i_PCP4 => s_PC4,
        o_PCP4 => s_PC,
        i_imem => s_Inst,
@@ -780,7 +787,7 @@ IFID: iF_ID
 
 IDEX: ID_EX
   port map(i_CLK => iCLK,
-       i_RST => '0',
+       i_RST => s_ID_EX_flush_not,
 
        i_MemtoRegEx => s_MemtoRegD,
        o_MemtoRegEx => s_MemtoRegEx,
@@ -1008,14 +1015,14 @@ MEMWB: MEM_WB
        i_OverflowM => s_OverflowEx,
        o_OverflowM => s_OverflowM,
 
-	i_stall		=> s_ID_EX_stall,
+	--i_stall		=> s_ID_EX_stall,
 
        i_PCM => s_PCEX,
        o_PCM => s_PCM,
 
        i_ALU => s_ALU,
        o_ALU => s_DMemAddr,
-       i_ALU2 => s_ALU2,
+       i_ALU2 => s_forward2,
        o_ALU2 => s_DMemData,
 
        i_Inst => s_rdEx,

@@ -11,13 +11,13 @@ main:
 	j jump
 	li $v0, 4
 	la $a0, str1
-	syscall
+	#syscall
 
 jump:
-	li $v0, 4
+	li $v0, 6 # was 4
 	la $a0, str0
-	syscall
+	#syscall
 	
 	li $v0, 10
-	syscall
+	#syscall
 	halt

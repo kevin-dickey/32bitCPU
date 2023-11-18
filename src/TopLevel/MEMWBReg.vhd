@@ -23,7 +23,7 @@ entity MEM_WB is
        i_OverflowM          : in std_logic;
        o_OverflowM          : out std_logic;
 
-	i_stall		: in std_logic;
+	--i_stall		: in std_logic;
 
        i_PCM          : in std_logic_vector(31 downto 0);
        o_PCM          : out std_logic_vector(31 downto 0);
@@ -78,28 +78,28 @@ begin
   dffRegWrite: dffg
 	port MAP(i_CLK	=> i_CLK,
 		i_RST	=> i_RST,
-		i_WE	=> i_stall,
+		i_WE	=> '1',
 		i_D	=> i_RegWriteM,
 		o_Q	=> o_RegWriteM);
 
   dffmemWrite: dffg
 	port MAP(i_CLK	=> i_CLK,
 		i_RST	=> i_RST,
-		i_WE	=> i_stall,
+		i_WE	=> '1',
 		i_D	=> i_memWriteM,
 		o_Q	=> o_memWriteM);
 
   dffmemRead: dffg
 	port MAP(i_CLK	=> i_CLK,
 		i_RST	=> i_RST,
-		i_WE	=> i_stall,
+		i_WE	=> '1',
 		i_D	=> i_memReadM,
 		o_Q	=> o_memReadM);
 
   dffHaltEX: dffg
 	port MAP(i_CLK	=> i_CLK,
 		i_RST	=> i_RST,
-		i_WE	=> i_stall,
+		i_WE	=> '1',
 		i_D	=> i_halt,
 		o_Q	=> o_halt);
 
@@ -107,35 +107,35 @@ begin
   dffjLinkEX: dffg
 	port MAP(i_CLK	=> i_CLK,
 		i_RST	=> i_RST,
-		i_WE	=> i_stall,
+		i_WE	=> '1',
 		i_D	=> i_jLinkM,
 		o_Q	=> o_jLinkM);
 
   dffOverEX: dffg
 	port MAP(i_CLK	=> i_CLK,
 		i_RST	=> i_RST,
-		i_WE	=> i_stall,
+		i_WE	=> '1',
 		i_D	=> i_OverflowM,
 		o_Q	=> o_OverflowM);
 
   RegPCWB: reg_N
 	port MAP(i_In	=> i_PCM,
 		i_Clk	=> i_CLK,
-		i_WrEn	=> i_stall,
+		i_WrEn	=> '1',
 		i_Reset	=> '0',
 		o_Out	=> o_PCM);
 
   RegSignALU: reg_N
 	port MAP(i_In	=> i_ALU,
 		i_Clk	=> i_CLK,
-		i_WrEn	=> i_stall,
+		i_WrEn	=> '1',
 		i_Reset	=> '0',
 		o_Out	=> o_ALU);
 
   RegSignALU2: reg_N
 	port MAP(i_In	=> i_ALU2,
 		i_Clk	=> i_CLK,
-		i_WrEn	=> i_stall,
+		i_WrEn	=> '1',
 		i_Reset	=> '0',
 		o_Out	=> o_ALU2);
 
@@ -143,7 +143,7 @@ begin
   	generic map(N => 5)
 	port MAP(i_In	=> i_Inst,
 		i_Clk	=> i_CLK,
-		i_WrEn	=> i_stall,
+		i_WrEn	=> '1',
 		i_Reset	=> '0',
 		o_Out	=> o_Inst);
 
