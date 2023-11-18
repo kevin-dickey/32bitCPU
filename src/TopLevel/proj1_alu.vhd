@@ -138,11 +138,10 @@ port MAP(i_A	=> s_zero,
 
 --end structual;
 
-process(i_opcode, i_func, s_add_sub, s_barrel, s_zeroNot, i_ALU1, i_ALU2, i_immediate, s_overflow, s_zero) is
+process(i_opcode, i_func, s_add_sub, s_barrel, s_zeroNot, i_ALU1, i_ALU2, i_immediate, s_overflow) is
 begin
 
 --s_zero <= '0';
-
 
 case(i_opcode) is
     when "000000" => --R format
