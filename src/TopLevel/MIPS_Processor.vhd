@@ -552,7 +552,7 @@ begin
 	s_jumpAddress(0) <= '0';
 
     JumpPC: for i in 28 to 31 generate
-	s_jumpAddress(i) <= s_PC(i);
+	s_jumpAddress(i) <= s_PCEX(i);
   end generate JumpPC;
 
     ShiftLeft2b: for i in 0 to 29 generate
@@ -563,7 +563,7 @@ begin
 
 ADDERI: RippleCarryAdder_N port map(
               i_op1     => s_ShiftedSignExtend, 
-              i_op2      => s_PC,  
+              i_op2      => s_PCEX,  
 	      i_carryIn      => '0',
 	      o_overflow      => s_overflow1,
 	      o_carryOut      => s_carryOut1,

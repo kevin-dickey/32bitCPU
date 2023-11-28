@@ -138,7 +138,7 @@ port MAP(i_A	=> s_zero,
 
 --end structual;
 
-process(i_opcode, i_func, s_add_sub, s_barrel, s_zeroNot, i_ALU1, i_ALU2, i_immediate, s_overflow) is
+process(i_CLK, i_opcode, i_func, s_add_sub, s_barrel, s_zeroNot, s_zero, i_ALU1, i_ALU2, i_immediate, s_overflow) is
 begin
 
 --s_zero <= '0';
@@ -254,11 +254,11 @@ when "001010" =>	--slti
 	end if;
 	o_overflow <= '0';
 when "000100" =>	--beq
-	o_zero <= s_zero; 
+	o_zero <= i_opcode(0) xor s_zero; 
 
 	o_overflow <= '0';
 when "000101" => 	--bne
-	o_zero <= s_zeroNot;
+	o_zero <= i_opcode(0) xor s_zero; --not s_zero; -- s_zeroNot
 
 	o_overflow <= '0';
 when "101011" =>	--sw
