@@ -496,9 +496,9 @@ end component;
 --end component;
 
 component hazard_unit is
-	port(jr, branch, jump, ID_EX_MemtoReg, ID_EX_RegDst, EX_MEM_MemtoReg, EX_MEM_RegDst, EX_MEM_RegDstWB, EX_MEM_RegWB, aluSrc		: in std_logic;
-	EX_MEM_mux, RegWrAddr, RegExAddr, RegDecAddr
-		: in std_logic_vector (4 downto 0);
+	port(jr, branch, jump, ID_EX_MemtoReg, ID_EX_RegDst, EX_MEM_MemtoReg, EX_MEM_RegDst, EX_MEM_RegDstWB, EX_MEM_RegWB, aluSrc, EX_RegWr, MEM_RegWr, branchD			: in std_logic;
+	RegMemAddr, RegWrAddr, RegExAddr, RegDecAddr
+		: in std_logic_vector(4 downto 0);
 	ID_EX_Instr, EX_MEM_Instr, Instr
 		: in std_logic_vector (31 downto 0);
 	ID_EX_stall, ID_EX_flush, IF_ID_flush, IF_ID_stall, PC_stall, o_control_hazard
@@ -581,12 +581,20 @@ ADDERI: RippleCarryAdder_N port map(
 	      o_sum      => Temp1);	-- Temp1 is the branch address
 
 
-process (s_ALU1D, s_ALU2D)
+process (s_ALU1D, s_ALU2D, s_zeroD, s_InstF)
 begin
 if (s_ALU1D = s_ALU2D) then
-	s_zeroD <= '1';
+	if (s_InstF(31 downto 26) = "000100") then	
+	s_zeroD <= '1';	-- values equal, beq -- so branch
+	elsif (s_InstF(31 downto 26) = "000101") then
+	s_zeroD <= '0';	-- values equal, bne -- dont branch
+	end if;
 else
-	s_zeroD <= '0';
+	if (s_InstF(31 downto 26) = "000100") then	
+	s_zeroD <= '0';	-- values not equal, beq -- dont branch
+	elsif (s_InstF(31 downto 26) = "000101") then
+	s_zeroD <= '1';	-- values not equal, bne -- so branch
+	end if;
 end if;
 end process;
 
@@ -688,26 +696,6 @@ s_Inst(2) <= s_dummyInst(2) and (not iRST);
 s_Inst(1) <= s_dummyInst(1) and (not iRST);
 s_Inst(0) <= s_dummyInst(0) and (not iRST);
 
---hazard: hazard_detection
- --  port MAP(jr			=> s_jReg,
- --		branch		=> s_Branch,
---		jump		=> s_Jump,
---		ID_EX_MemtoReg	=> s_MemReadEX,
---		EX_MEM_MemtoReg	=> s_MemtoRegWB,
---		rd		=> s_rdEx,
---		rt		=> s_rtEx,
---		EX_MEM_mux	=> s_InstM,	
---		i_opcode	=> NA3,
---		i_func		=> NA3,
---		ID_EX		=> s_SignExtendedEx,
---		EX_MEM		=> s_ALUWB,	
---		ID_EX_stall	=> s_ID_EX_stall,
---		ID_EX_flush	=> s_ID_EX_flush,
---		IF_ID_flush	=> s_IF_ID_flush,
---		IF_ID_stall	=> s_IF_ID_stall,	-- bro is an output
---		PC_stall	=> s_pc_stall,
---		o_control_hazard => NA1);
-
 s_IF_ID_flush_not <= not s_IF_ID_flush;
 s_ID_EX_flush_not <= not s_ID_EX_flush;
 
@@ -723,11 +711,15 @@ hazard: hazard_unit
 		EX_MEM_RegDst => s_RegDst,  -- dont use currently
 		EX_MEM_RegDstWB => s_RegDst, -- dont use currently
 
+		EX_RegWr => s_RegWriteEx,
+		MEM_RegWr => s_RegWriteM,
+		branchD => s_BranchD,
+
 		EX_MEM_RegWB => s_memWriteEx, -- was s_MemtoRegWB
 		RegWrAddr => s_RegWrAddr,
 		RegExAddr => s_rdEx,
 		RegDecAddr => s_RegWrAddrD,
-		EX_MEM_mux => s_rdEx, --no use
+		RegMemAddr => s_InstM, --no use
 		ID_EX_Instr => s_InstF,
 		EX_MEM_Instr => s_InstEx, 
 		Instr => s_NextInstAddr,
