@@ -92,6 +92,8 @@ architecture mixed of MIPS_Processor is
   signal s_jLinkD : std_logic;
   signal s_jRegD : std_logic;
   signal s_ctlD : std_logic;
+  signal s_zeroD : std_logic;
+
   --Ex control signals
   signal s_BranchEx : std_logic := '0';
   signal s_JumpEx : std_logic := '0';
@@ -111,6 +113,7 @@ architecture mixed of MIPS_Processor is
   signal s_SignExtendedEx : std_logic_vector(N-1 downto 0);
   signal s_PCEX : std_logic_vector(N-1 downto 0);
   signal s_SoZextendEx : std_logic;
+  signal s_zeroEx : std_logic;
 
   --M control signals
   signal s_MemtoRegM : std_logic;
@@ -262,6 +265,8 @@ component ID_EX is
 
        i_branchEx          : in std_logic;
        o_branchEx          : out std_logic;
+       i_zero          : in std_logic;
+       o_zero          : out std_logic;	
        i_jumpEx          : in std_logic;
        o_jumpEx          : out std_logic;
        i_AluSrcEx          : in std_logic;
@@ -500,6 +505,12 @@ component hazard_unit is
 		: out std_logic);
 end component;
 
+component andg2 is
+	port(i_A	: in std_logic;
+	     i_B	: in std_logic;
+	     o_F	: out std_logic);
+end component;
+
 
 
   -- TODO: You may add any additional signals or components your implementation 
@@ -569,7 +580,29 @@ ADDERI: RippleCarryAdder_N port map(
 	      o_carryOut      => s_carryOut1,
 	      o_sum      => Temp1);	-- Temp1 is the branch address
 
-    s_brAz <= s_zero and s_BranchEx;
+
+process (s_ALU1D, s_ALU2D)
+begin
+if (s_ALU1D = s_ALU2D) then
+	s_zeroD <= '1';
+else
+	s_zeroD <= '0';
+end if;
+end process;
+
+braz_and: andg2
+	port map(i_A => s_zeroEx,
+		 i_B => s_BranchEx,
+		 o_F => s_brAz);
+
+--    process(s_zero)
+--    begin
+--    if (s_zero'stable(500 ps)) then
+--        s_brAz <= s_zero and s_BranchEx;
+--    else
+--      s_brAz <= '0';
+--    end if;
+--    end process;
 
     MUXI2: mux2t1_N port map(
               i_S      => s_brAz,      
@@ -801,6 +834,8 @@ IDEX: ID_EX
 
        i_branchEx => s_BranchD,
        o_branchEx => s_BranchEx,
+       i_zero => s_zeroD,
+       o_zero => s_zeroEx,
        i_jumpEx => s_JumpD,
        o_jumpEx => s_JumpEx,
        i_AluSrcEx => s_ALUSrcD,

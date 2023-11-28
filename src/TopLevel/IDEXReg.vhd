@@ -18,6 +18,8 @@ entity ID_EX is
 
        i_branchEx          : in std_logic;
        o_branchEx          : out std_logic;
+       i_zero          : in std_logic;
+       o_zero          : out std_logic;	
        i_jumpEx          : in std_logic;
        o_jumpEx          : out std_logic;
        i_AluSrcEx          : in std_logic;
@@ -136,6 +138,13 @@ begin
 		i_WE	=> i_stall,
 		i_D	=> i_branchEx,
 		o_Q	=> o_branchEx);
+
+  dffEXZero: dffg
+	port MAP(i_CLK	=> i_CLK,
+		i_RST	=> i_RST,
+		i_WE	=> i_stall,
+		i_D	=> i_zero,
+		o_Q	=> o_zero);
 
   dffEXJump: dffg
 	port MAP(i_CLK	=> i_CLK,

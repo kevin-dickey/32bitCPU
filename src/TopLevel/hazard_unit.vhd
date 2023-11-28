@@ -19,7 +19,7 @@ begin
 -- other stalls: active low
 -- flush: active low
     begin
-        if (branch = '1' and branch'stable(500 ps)) then
+        if (branch = '1') then --and branch'stable(10 ps)) then
 		PC_stall <= '0'; 
 		ID_EX_stall <= '1';
 		ID_EX_flush <= '1';

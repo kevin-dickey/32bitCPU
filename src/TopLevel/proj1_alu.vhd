@@ -141,7 +141,7 @@ port MAP(i_A	=> s_zero,
 process(i_CLK, i_opcode, i_func, s_add_sub, s_barrel, s_zeroNot, s_zero, i_ALU1, i_ALU2, i_immediate, s_overflow) is
 begin
 
---s_zero <= '0';
+
 
 case(i_opcode) is
     when "000000" => --R format
@@ -151,36 +151,43 @@ case(i_opcode) is
 		o_ALU <= s_add_sub;
 		o_if <= '0';
 		o_overflow <= s_overflow;
+		o_zero <= '0';
 	when "100001" =>	--addu
 		o_ALU <= s_add_sub;
 		o_if <= '0';
 		o_overflow <= '0';
+		o_zero <= '0';
 	when "100010" =>	--sub
 		o_ALU <= s_add_sub;
 		o_if <= '0';
 		o_overflow <= s_overflow;
+		o_zero <= '0';
 	when "100011" =>	--subu
 		o_ALU <= s_add_sub;
 		o_if <= '0';
 		o_overflow <= '0';
+		o_zero <= '0';
 	when "100111" =>	 --nor
 		for i in 0 to 31 loop
 		o_ALU(i) <= i_ALU1(i) nor i_ALU2(i);
 		end loop;
 		o_if <= '0';
 		o_overflow <= '0';
+		o_zero <= '0';
 	when "100101" =>	--or
 		for i in 0 to 31 loop
 		o_ALU(i) <= i_ALU1(i) or i_ALU2(i);
 		end loop;
 		o_if <= '0';
 		o_overflow <= '0';
+		o_zero <= '0';
 	when "100110" =>	--xor
 		for i in 0 to 31 loop
 		o_ALU(i) <= i_ALU1(i) xor i_ALU2(i);
 		end loop;
 		o_if <= '0';
 		o_overflow <= '0';
+		o_zero <= '0';
 	when "101010" =>	--slt
 		if (s_add_sub(31) = '1') then
 			o_ALU <= x"00000001";
@@ -188,15 +195,19 @@ case(i_opcode) is
 			o_ALU <= x"00000000";
 		end if;
 		o_overflow <= '0';
+		o_zero <= '0';
 	when "000000" =>	--sll
 		o_ALU <= s_barrel;
 		o_overflow <= '0';
+		o_zero <= '0';
 	when "000010" => 	--srl
 		o_ALU <= s_barrel;
 		o_overflow <= '0';
+		o_zero <= '0';
 	when "000011" => 	--sra
 		o_ALU <= s_barrel;
 		o_overflow <= '0';
+		o_zero <= '0';
 
 	when "100100" =>	--and
 	for i in 0 to 31 loop
@@ -204,7 +215,7 @@ case(i_opcode) is
 	end loop;
 	o_if <= '0';
 	o_overflow <= '0';
-
+	o_zero <= '0';
 	when others =>
 		o_if <= '1';
 		o_ALU <= x"00000000";
@@ -216,36 +227,42 @@ when "001000" => --addi
 	o_ALU <= s_add_sub;
 	o_if <= '0';
 	o_overflow <= s_overflow;
+	o_zero <= '0';
 when "001001" => --addiu
 	o_ALU <= s_add_sub;
 	o_if <= '0';
 	o_overflow <= '0';
-
+	o_zero <= '0';
 when "001100" =>	--andi
 	for i in 0 to 31 loop
 	o_ALU(i) <= i_ALU1(i) and i_ALU2(i);
 	end loop;
 	o_if <= '0';
 	o_overflow <= '0';
+	o_zero <= '0';
 when "001111" =>	--lui
 	o_ALU <= i_ALU2(15 downto 0)&"0000000000000000";
 	o_if <= '0';
 	o_overflow <= '0';
+	o_zero <= '0';
 when "100011" =>	--lw
 	o_ALU <= s_add_sub;
 	o_if <= '0';
 	o_overflow <= '0';
+	o_zero <= '0';
 when "001110" => 	--xori
 	for i in 0 to 31 loop
 	o_ALU(i) <= i_ALU1(i) xor i_ALU2(i);
 	end loop;
 	o_overflow <= '0';
+	o_zero <= '0';
 when "001101" => 	--ori
 	for i in 0 to 31 loop
 	o_ALU(i) <= i_ALU1(i) or i_ALU2(i);
 	end loop;
 	o_if <= '0';
 	o_overflow <= '0';
+	o_zero <= '0';
 when "001010" =>	--slti
 	if (s_add_sub(31) = '1') then
 		o_ALU <= x"00000001";
@@ -253,6 +270,7 @@ when "001010" =>	--slti
 		o_ALU <= x"00000000";
 	end if;
 	o_overflow <= '0';
+	o_zero <= '0';
 when "000100" =>	--beq
 	o_zero <= i_opcode(0) xor s_zero; 
 
@@ -264,9 +282,11 @@ when "000101" => 	--bne
 when "101011" =>	--sw
 	o_ALU <= s_add_sub;
 	o_overflow <= '0';
+	o_zero <= '0';
 when others =>
 	o_if <= '1';
 	o_ALU <= x"00000000";
+	o_zero <= '0';
 --	o_overflow <= '0';
 end case;
 
