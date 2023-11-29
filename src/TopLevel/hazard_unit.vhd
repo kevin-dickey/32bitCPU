@@ -62,7 +62,7 @@ begin
 		IF_ID_stall <= '0';
 		IF_ID_flush <= '1';		
 
-         -- store word
+         -- store word, not necessary but just in case need to fix at some point
         elsif (EX_MEM_RegWB = '1') and (((RegExAddr = RegWrAddr or RegExAddr = Instr(20 downto 16))) or
                                          ((RegDecAddr = RegWrAddr or RegDecAddr = Instr(20 downto 16)))) then
 		PC_stall <= '0';
