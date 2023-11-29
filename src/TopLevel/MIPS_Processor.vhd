@@ -151,6 +151,8 @@ architecture mixed of MIPS_Processor is
   signal s_newPC : std_logic_vector(N-1 downto 0);
   signal s_InstF : std_logic_vector(N-1 downto 0);
   signal s_dummyInst : std_logic_vector(N-1 downto 0);
+  signal s_PC_stallF : std_logic;
+  signal s_NxtInstAddrMinusFour : std_logic_vector(N-1 downto 0);
 
 
   --Sign-extended signal
@@ -242,7 +244,9 @@ component iF_ID is
        o_PCP4          : out std_logic_vector(31 downto 0);
        i_imem          : in std_logic_vector(31 downto 0);
        o_imem          : out std_logic_vector(31 downto 0);
-       i_stall	       : in std_logic);
+       i_stall	       : in std_logic;
+       i_pc_stall	: in std_logic;
+       o_pc_stall	: out std_logic);
 end component;
 
 
@@ -434,6 +438,17 @@ component RippleCarryAdder_N is
 		 o_sum		: out std_logic_vector(N-1 downto 0);
 		 o_carryOut : out std_logic;
 		 o_overflow : out std_logic);
+end component;
+
+component AdderSubtractor_N is
+	generic(N : integer := 32);
+	port(i_A			: in std_logic_vector(N-1 downto 0);
+		 i_B			: in std_logic_vector(N-1 downto 0);
+		 i_nAdd_Sub		: in std_logic;
+	 	 o_Sums			: out std_logic_vector(N-1 downto 0);
+		 o_Carry_Out	: out std_logic;
+		 o_Overflow		: out std_logic;
+		 o_Zero			: out std_logic);
 end component;
 
 
@@ -632,9 +647,9 @@ braz_and: andg2
               o_O      => s_PCi); 
 
     pcLooperMux: mux2t1_N port map(
-              i_S      => s_PC_stall,      
+              i_S      => not s_PC_stallF,      
               i_D0     => s_PCi,  		-- keep updating pc
-              i_D1     => s_NextInstAddr,  	-- loop that shit
+              i_D1     => s_NxtInstAddrMinusFour,  	-- loop that shit
               o_O      => s_new_and_improved_flushy); 
 	
 
@@ -643,6 +658,16 @@ PC: MIPS_pc port map(i_CLK => iCLK,
        i_D  => s_new_and_improved_flushy, --Should be s_PCi
       -- i_PC_stall => s_PC_stall,
        o_Q  => s_NextInstAddr);
+
+NXTINSTMINUSFOURADDR: AdderSubtractor_N 
+	port map(i_A		=> s_NextInstAddr,	
+		 i_B		=> x"00000004",	
+		 i_nAdd_Sub	=> '1',	
+	 	 o_Sums		=> s_NxtInstAddrMinusFour,	
+		 o_Carry_Out	=> open,
+		 o_Overflow	=> open,
+		 o_Zero		=> open);
+
 
 ADDER4I: RippleCarryAdder_N port map(
               i_op1     => s_NextInstAddr,  -- ith instance's data 0 input hooked up to ith data 0 inputmight need another array for carry bits(then could add again or implement using the carry bit(add then add the previous term with the current bit, two adds per iteration of the for loop))
@@ -732,12 +757,14 @@ hazard: hazard_unit
 
 IFID: iF_ID 
   port map(i_CLK => iCLK,
-       i_RST => s_IF_ID_flush_not,
+       i_RST => s_IF_ID_flush_not or (not s_PC_stallF),
        i_PCP4 => s_PC4,
        o_PCP4 => s_PC,
        i_imem => s_Inst,
        o_imem => s_InstF,
-       i_stall => s_IF_ID_stall);
+       i_stall => s_IF_ID_stall,
+       i_pc_stall => s_PC_stall,
+       o_pc_stall => s_PC_stallF);
 
     HazMemtoRegMUX: mux2t1
 	port map(
