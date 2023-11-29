@@ -419,7 +419,7 @@ MEMWB: MEM_WB
 
 	
 	--Values that go through multiple registers
-	s_Inst <= x"12345678";
+	s_Inst <= x"1180FFF3";
 	s_RegWrD <= '1';
 	s_RegWrAddrD <= "11001";
 	
@@ -432,7 +432,7 @@ MEMWB: MEM_WB
 
 	
 	--Values that go through multiple registers
-	s_Inst <= x"91011121";
+	s_Inst <= x"ADCF0000";
 	s_RegWrD <= '1';
 	s_RegWrAddrD <= "01010";
 
@@ -445,19 +445,19 @@ MEMWB: MEM_WB
 
 	
 	--Values that go through multiple registers
-	s_Inst <= x"00000000";
+	s_Inst <= x"21CEFFFC";
 	s_RegWrD <= '1';
 	s_RegWrAddrD <= "11111";
 
 	wait for cCLK_PER;
-	s_IF_ID_flush_not <= '0';
+	s_IF_ID_flush_not <= '1';
 	s_PC_stallF <= '1';
 	
 	s_ID_EX_flush_not <= '0';
 
 	
 	--Values that go through multiple registers
-	s_Inst <= x"91011121";
+	s_Inst <= x"01105822";
 	s_RegWrD <= '1';
 	s_RegWrAddrD <= "01010";
 
