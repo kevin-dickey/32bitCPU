@@ -475,6 +475,31 @@ MEMWB: MEM_WB
 
 	wait for cCLK_PER;
 
+  	s_IF_ID_flush_not <= '0';
+	s_PC_stallF <= '0';
+	
+	s_ID_EX_flush_not <= '0';
+
+	
+	--Values that go through multiple registers
+	s_Inst <= x"54723212";
+	s_RegWrD <= '1';
+	s_RegWrAddrD <= "01010";
+
+	wait for cCLK_PER;
+
+	s_IF_ID_flush_not <= '0';
+	s_PC_stallF <= '1';
+	
+	s_ID_EX_flush_not <= '1';
+
+	
+	--Values that go through multiple registers
+	s_Inst <= x"76281028";
+	s_RegWrD <= '1';
+	s_RegWrAddrD <= "01010";
+
+	wait for cCLK_PER;
 
     wait;
   end process;
